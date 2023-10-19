@@ -1,0 +1,8 @@
+.button{
+    cursor: pointer;
+}
+
+.button--hoverable:hover{
+    font-weight: 600;
+}
+

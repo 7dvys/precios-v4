@@ -1,0 +1,22 @@
+.container{
+    background-color: var(--white-0);
+    padding: 1rem;
+    border-radius: 5px;
+    box-shadow: var(--shadow-0);
+}
+
+.container--form{
+    display: grid;
+    gap: 0.2rem;
+}
+
+.container--form div{
+    display: grid;
+    margin-top: 0.4rem;
+    gap: 0.4rem;
+    grid-template-columns: repeat(2,minmax(0,0.5fr));
+}
+
+.container--form h3{
+  margin-bottom: 0.5rem;
+}

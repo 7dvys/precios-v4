@@ -1,0 +1,13 @@
+.nav{
+    justify-content: center;
+    width: 100%;
+    padding: 0.8rem;
+    background-color:var(--white-0);
+    box-shadow: var(--shadow-0);
+    display: flex;
+    gap: 1rem;
+}
+
+.nav .current{
+    font-weight: 600;
+}
