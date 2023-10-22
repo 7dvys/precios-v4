@@ -2,7 +2,16 @@
     cursor: pointer;
 }
 
-.button--hoverable:hover{
+.link{
+    color: var(--grey-1);
+}
+
+.link:hover{
+    color: var(--grey-2);
+}
+
+.link--active{
     font-weight: 600;
+    color: var(--black-0);
 }
 

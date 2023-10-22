@@ -1,19 +1,19 @@
 import pageTemplateStyles from '@/styles/pageTemplate.module.css';
 
 interface PageTemplateProps{
-    AsideFC:React.FC,
-    MainFC:React.FC
+    AsideContent:React.FC,
+    MainContent:React.FC
 }
 
-export const PageTemplate:React.FC<PageTemplateProps> = ({MainFC,AsideFC})=>{
+export const PageTemplate:React.FC<PageTemplateProps> = ({MainContent,AsideContent})=>{
     return (
-        <div className={pageTemplateStyles.container}>
+        <>
             <aside className={`${pageTemplateStyles.aside} ${pageTemplateStyles['--flex-column']}`}>
-                <AsideFC/>
+                <AsideContent/>
             </aside>
             <main className={`${pageTemplateStyles.main} ${pageTemplateStyles['--flex-column']}`}>
-                <MainFC/>
+                <MainContent/>
             </main>
-        </div>
+        </>
     )
 }

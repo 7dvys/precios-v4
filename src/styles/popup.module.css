@@ -1,0 +1,52 @@
+/* Estilo para el contenedor de notificación */
+.notificationStack{
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.notification {
+    background-color: var(--grey-beige-0);
+    color: var(--grey-2);
+    padding: 10px;
+    border: 2px solid var(--grey-beige-1);
+    border-radius: 5px;
+    box-shadow: var(--shadow-0);
+    display: flex;
+    gap: 0.4rem;
+    align-items: flex-end;
+  }
+
+  .notification p{
+    margin-right: 0.2rem;
+    margin-bottom: 0.2rem;
+  }
+  
+  /* Estilo para el botón de cerrar o aceptar */
+  .notification button {
+    background-color: #ff5722;
+    color: #fff;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+  
+  /* Estilo para el botón de cerrar (si lo prefieres) */
+  .notification button.close {
+    background-color: transparent;
+    color: #fff;
+    font-size: 18px;
+    padding: 5px;
+    border: none;
+    cursor: pointer;
+  }
+  
+  /* Añade estilo al botón solo cuando se coloca el cursor sobre él */
+  .notification button:hover {
+    background-color: #f44336;
+  }
+  

@@ -9,7 +9,7 @@
   
     --grey-0:rgba(63, 63, 64, 0.308);
     --grey-1:rgba(63, 63, 64, 0.9);
-    --grey-2:rgba(63, 63, 64, 1);
+    --grey-2:rgb(29, 29, 29);
 
     --shadow-0:rgba(99, 99, 99, 0.2) 0px 2px 8px 0px;
 }
@@ -21,6 +21,7 @@
     box-sizing: border-box;
     text-decoration: none;
     font-family: Arial, Helvetica, sans-serif;
+    list-style-type: none;
 }
 
 body{
@@ -31,10 +32,31 @@ input:not([type="file"]),select{
     padding-left: 6px;
 }
 
+h2,h3,h4,h5{
+    margin-bottom: 0.4rem;
+    color: var(--grey-2);
+}
+
 .sticky {
     position: sticky;
     top: 0; 
     z-index: 1; 
+}
+
+.rootContainer{
+    display: flex;
+    width: 100%;
+    padding: 1.5rem;
+    gap: 1.5rem;
+}
+
+.flex-row{
+    display: flex;
+    flex-direction: row;
+}
+
+.flex-gap{
+    gap: 1rem;
 }
 
 

@@ -1,14 +1,14 @@
 'use client'
-import Link from "next/link";
 import navStyles from '@/styles/nav.module.css';
-import buttonsStyles from '@/styles/buttons.module.css';
 import { usePathname } from "next/navigation";
+import { ActiveLink } from "./ActiveLink";
 
 export const Nav:React.FC = ()=>{
-    const pathName = usePathname()
+    const pathname = usePathname()
+    const mainPathname = '/'+pathname.split('/')[1]
     const pages = [['inicio','/'],['listas','/listas'],['opciones','/opciones']]
-    const Links = pages.map(([titulo,path],index)=>(
-        <Link key={index} className={`${buttonsStyles.button} ${buttonsStyles['button--hoverable']} ${pathName==path?navStyles.current:''}`} href={path}>{titulo}</Link>
+    const Links = pages.map(([title,href],index)=>(
+        <ActiveLink key={index} href={href} pathname={pathname} mainPathname={mainPathname}>{title}</ActiveLink>
     ))
     return (<nav className={navStyles.nav}>{Links}</nav>)
 }

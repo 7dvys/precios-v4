@@ -7,7 +7,3 @@
     display: flex;
     gap: 1rem;
 }
-
-.nav .current{
-    font-weight: 600;
-}
