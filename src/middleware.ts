@@ -3,8 +3,9 @@ import { AccountTypeKey } from "./types/Config"
 import { CbTokenKey } from "./types/Contabilium";
 import { RequestCookies } from "next/dist/compiled/@edge-runtime/cookies";
 import { CbCredentialsKeys } from "./types/CookiesStore";
-import { missingCbCredentials } from "./constants/opciones/notifications";
+import { errorCodes } from "./constants/opciones/notifications";
 
+const {missingCbCredentialsBoth,missingCbCredentialsMain,missingCbCredentialsSecondary} = errorCodes
 
 const initCreateIsSet= (cookiesStore:RequestCookies)=><T extends string[]>(keys:T)=>{
     for(const key of keys){
@@ -19,9 +20,7 @@ export const middleware = async (request:NextRequest)=>{
     const isSetAccountType = createIsSet<AccountTypeKey[]>(['accountType']);
     const isSetMainCbCredentials = createIsSet<CbCredentialsKeys>(['userMain','passMain']);
     const isSetSecondaryCbCredentials = createIsSet<CbCredentialsKeys>(['userSecondary','passSecondary']);
-    const isSetContabiliumCredentials = isSetMainCbCredentials && isSetSecondaryCbCredentials;
-    const isSetToken = createIsSet<CbTokenKey[]>(['tokenMain','tokenSecondary']);
-
+    const isSetTokens = createIsSet<CbTokenKey[]>(['tokenMain','tokenSecondary']);
     
     if(!isSetAccountType)
     return NextResponse.redirect(request.nextUrl.origin+'/api/opciones/accountType')
@@ -29,25 +28,27 @@ export const middleware = async (request:NextRequest)=>{
     // Si falta alguno
     
     let error = ''
-
-    console.log(request.cookies.get('userMain'))
-    
+        
     if(!isSetMainCbCredentials)
-    error = missingCbCredentials.main;
+    error = missingCbCredentialsMain;
 
     if(!isSetSecondaryCbCredentials)
-    error = missingCbCredentials.secondary;
+    error = missingCbCredentialsSecondary;
 
-    if(!isSetContabiliumCredentials)
-    error = missingCbCredentials.both;
+    if(!isSetMainCbCredentials && !isSetSecondaryCbCredentials)
+    error = missingCbCredentialsBoth;
 
     if(error)
     return NextResponse.redirect(request.nextUrl.origin+'/opciones/contabilium?notification='+error)
 
-    if(!isSetToken)
+    if(!isSetTokens){
+        const refreshTokensUrl = request.nextUrl.origin+'/api/opciones/contabilium?action=loginBoth';
+        return NextResponse.redirect(refreshTokensUrl);
+    }
+
     return NextResponse.next()
 }
 
 export const config = {
-    matcher:['/listas','/']
+    matcher:['/listas','/','/opciones','/opciones/cotizaciones',]
 }

@@ -1,9 +1,8 @@
 'use client'
-import { useSearchParams } from "next/navigation"
+import { useSearchParams,useRouter,usePathname,  } from "next/navigation"
 import { useEffect, useState } from "react";
 import popupStyles from '@/styles/popup.module.css';
-import { accountTypeSuccess, cbLoginSuccess, duplicatedCbCredentials, loginTokenError, missingCbCredentials, setCredentialsError } from "@/constants/opciones/notifications";
-
+import { notificationMessages } from "@/constants/opciones/notifications";
 
 export const Notification:React.FC<{message:string,onClose:(id:number)=>void, id:number}> = ({ id,message, onClose }) => {
     useEffect(() => {
@@ -21,27 +20,14 @@ export const Notification:React.FC<{message:string,onClose:(id:number)=>void, id
     );
 };
 
-const setNotificationMessage = (code:string)=>{
-    const notificationMessages = {
-        [missingCbCredentials.both]: 'Ingresa sesion en ambas cuentas.',
-        [missingCbCredentials.main]: 'Ingresa sesion en la cuenta principal.',
-        [missingCbCredentials.secondary]: 'Ingresa sesion en la cuenta secundaria.',
-        [setCredentialsError]: 'Error al guardar las credenciales.',
-        [cbLoginSuccess.main]: 'Cuenta principal logueada con exito.',
-        [cbLoginSuccess.secondary]: 'Cuenta secundaria logueada con exito.',
-        [accountTypeSuccess]: 'Tipo de cuenta cambiada con exito.',
-        [loginTokenError.main]: 'Error al iniciar sesion principal, intentelo denuevo.',
-        [loginTokenError.secondary]: 'Error al iniciar sesion secundaria, intentelo denuevo.',
-        [duplicatedCbCredentials]: 'La cuenta ya existe.',
-        // ...otros mensajes
-      };
-      
-    return notificationMessages[code] || '';
-}
-
-
 export const NotificationStack = () => {
     const [notifications, setNotifications] = useState<{id:number,code:string,message:string}[]>([]);
+    const router = useRouter()
+    const pathname = usePathname()
+
+    const cleanQueryParams = ()=>{
+        router.replace(pathname)
+    }
 
     const addNotification = ({code,message}:{code:string,message: string}) => {
         setNotifications((prevNotifications) => {
@@ -54,24 +40,25 @@ export const NotificationStack = () => {
         });
       };
       
-      
-
     const removeNotification = (id:number) => {
         setNotifications((prevNotifications) =>
             prevNotifications.filter((notification) => notification.id !== id)
         );
     };
 
-  
     const searchParams = useSearchParams();
 
     useEffect(()=>{
         if(searchParams.has('notification')){
-            const code = searchParams.get('notification')??'';
-            let message= setNotificationMessage(code);
+            const code= searchParams.get('notification') as keyof typeof notificationMessages;
+            const message= notificationMessages[code];
+            console.log(code)
+            console.log(notificationMessages)
 
             if(message)
             addNotification({code,message});
+
+            cleanQueryParams()
         }
     },[searchParams])
 
