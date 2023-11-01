@@ -10,6 +10,28 @@ export type CbToken = {
     error?:string
 }
 
+export type ObservacionesWithTags = {
+    ultActualizacion: string;
+    cotizacion: string;
+    proveedor: string;
+    cotizacionPrecio: number;
+    lista:string;
+    tagsId:string[];
+} & {
+    [tag:string]:[porcentual:number,fijo:number]
+}
+
+export type ObservacionesWithoutTags = {
+    ultActualizacion: string;
+    cotizacion: string;
+    proveedor: string;
+    cotizacionPrecio: number;
+    lista:string;
+    tagsId:string[];
+}
+
+export type Observaciones = ObservacionesWithTags | ObservacionesWithoutTags;
+
 export type Product = {
     Id:number;
     Nombre:string;
@@ -30,11 +52,12 @@ export type Product = {
     IdRubro:string;
     IdSubrubro:string;
     Foto:string;
-    AplicaRG5329:string;
+    AplicaRG5329:boolean;
     IDMoneda:number;
-    ListasDePrecio:string;
-    Items:string;
+    ListasDePrecio:{}|null;
+    Items:{}|null;
 }
+
 
 export type Vendor = {
     Ciudad: string;

@@ -1,0 +1,1 @@
+export const isDate = (date:any)=>(date instanceof Date && !isNaN(date.valueOf()));

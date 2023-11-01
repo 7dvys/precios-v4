@@ -52,8 +52,6 @@ export const NotificationStack = () => {
         if(searchParams.has('notification')){
             const code= searchParams.get('notification') as keyof typeof notificationMessages;
             const message= notificationMessages[code];
-            console.log(code)
-            console.log(notificationMessages)
 
             if(message)
             addNotification({code,message});

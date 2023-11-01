@@ -1,16 +1,21 @@
 import { CONTABILIUM_KEYS } from "@/constants/contabilium/cookiesKeys";
-import { AccountType } from "@/types/Config";
+import { AccountType, AccountTypeKey } from "@/types/Config";
 import { CbToken } from "@/types/Contabilium";
 import { cookies } from "next/headers";
 
 const {userMainKey,passMainKey,userSecondaryKey,passSecondaryKey,cbTokenMainKey,cbTokenSecondaryKey} = CONTABILIUM_KEYS;
-const domain = `${process.env.HOST}:${process.env.PORT}`;
 
 const getCookiesKeys = ({accountType}:{accountType:AccountType})=>{
     const userKey = accountType=='main'?userMainKey:userSecondaryKey;
     const passKey = accountType=='main'?passMainKey:passSecondaryKey;
     const cbTokenKey = accountType == 'main'?cbTokenMainKey:cbTokenSecondaryKey;
     return {userKey,passKey,cbTokenKey}
+}
+
+export const setDefaultAccountType = ()=>{
+    const accountTypeKey:AccountTypeKey = 'accountType';
+const defaultAccountType:AccountType = 'main';
+cookies().set(accountTypeKey,defaultAccountType,{});
 }
 
 const utils = ({accountType}:{accountType:AccountType})=>{ 
@@ -32,7 +37,7 @@ const utils = ({accountType}:{accountType:AccountType})=>{
 
     const setCbToken = ({token}:{token:CbToken})=>{
         const {access_token,expires_in} = token;
-        cookies().set(cbTokenKey,access_token,{maxAge:expires_in,secure:true,httpOnly:true,domain})
+        cookies().set(cbTokenKey,access_token,{maxAge:expires_in,secure:true,httpOnly:true,})
     }
 
     const dropCbToken = ({accountType}:{accountType:AccountType})=>{
@@ -41,8 +46,8 @@ const utils = ({accountType}:{accountType:AccountType})=>{
     }
     
     const setCbCredentials = ({user,password}:{user:string,password:string})=>{
-        cookies().set(userKey, user,{domain});
-        cookies().set(passKey, password, {secure:true,httpOnly:true,domain});
+        cookies().set(userKey, user,{});
+        cookies().set(passKey, password, {secure:true,httpOnly:true,});
     }
 
     const dropCbCredentials = ({accountType}:{accountType:AccountType})=>{

@@ -4,6 +4,7 @@ import { login as cbLogin} from "@/services/contabilium/login"
 import { AccountType, AccountTypeKey } from "@/types/Config";
 import { type NextRequest } from "next/server"
 import utils from "../opcionesUtils";
+import { ACTIONS_KEYS, ACTION_KEY } from "@/constants/opciones/actions";
 
 const {userMainKey,passMainKey,userSecondaryKey,passSecondaryKey} = CONTABILIUM_KEYS;
 const {cbLoginSuccessMain,cbLoginSuccessSecondary,loginTokenErrorMain,loginTokenErrorSecondary,refreshTokenError,refreshTokenSuccess} = errorCodes;
@@ -59,7 +60,7 @@ const refreshTokens = async(request:NextRequest)=>{
         const mainToken = await cbLogin({user:userMain,password:passMain});
         const secondaryToken = await cbLogin({user:userSecondary,password:passSecondary});
 
-        if(!mainToken && !secondaryToken){
+        if(!mainToken.error && !secondaryToken.error){
             setMainCbToken({token:mainToken});
             setSecondaryCbToken({token:secondaryToken});
             notification = refreshTokenSuccess;
@@ -68,8 +69,6 @@ const refreshTokens = async(request:NextRequest)=>{
         else 
         notification = refreshTokenError;
     }
-
-    else
     return Response.redirect(request.nextUrl.origin+'?notification='+notification);
 }
 
@@ -77,6 +76,7 @@ const logout = (request:NextRequest)=>{
     const { searchParams } = new URL(request.url)
     const accountTypeKey:AccountTypeKey = 'accountType';
     if(searchParams.has(accountTypeKey)){
+        console.log('hola')
         const accountType:AccountType = searchParams.get(accountTypeKey) as AccountType
         const {dropCbCredentials,dropCbToken} = utils({accountType})
         dropCbToken({accountType})
@@ -91,12 +91,12 @@ export const POST = async(request:NextRequest,)=>{
 
 export const GET = async(request:NextRequest)=>{
     const { searchParams } = new URL(request.url)
-    if(searchParams.has('action')){
-        const action = searchParams.get('action');
-        if(action == 'logout')
+    if(searchParams.has(ACTION_KEY)){
+        const action = searchParams.get(ACTION_KEY);
+        if(action == ACTIONS_KEYS.logout)
         return logout(request);
 
-        if(action == 'refreshToken')
+        if(action == ACTIONS_KEYS.refreshToken)
         return refreshTokens(request);
     } 
     return Response.redirect(request.nextUrl.origin);

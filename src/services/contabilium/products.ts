@@ -1,6 +1,6 @@
 import { Product } from "@/types/Contabilium";
 
-// Debemos 
+// Falta manejo de errores!!
 const getProducts = async ({token}:{token:string})=>{
     const location = 'https://rest.contabilium.com/api/conceptos/search?pageSize=50&page=';
 
@@ -10,11 +10,11 @@ const getProducts = async ({token}:{token:string})=>{
             'Content-Type':'application/json',
             'Authorization':'Bearer '+token,
         },
-        next:{revalidate:3600}
+        next:{revalidate:3600} // Cacheado por una hora.
     }
 
     let page = 0;
-    const response = await fetch(location+`${++page}`,config as ResponseInit);
+    const response = await fetch(location+`${++page}`,config as RequestInit);
     
     const {Items,TotalItems} = await response.json();
 
@@ -25,7 +25,7 @@ const getProducts = async ({token}:{token:string})=>{
     
     const promises = [];
     for(let times=0;times<remainingPages;times++){
-    const promise = fetch(location+`${++page}`,config as ResponseInit);
+    const promise = fetch(location+`${++page}`,config as RequestInit);
         promises.push(promise)
     }
 

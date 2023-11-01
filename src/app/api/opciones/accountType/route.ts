@@ -2,13 +2,13 @@ import { errorCodes } from "@/constants/opciones/notifications";
 import { AccountType, AccountTypeKey } from "@/types/Config";
 import { cookies } from "next/headers";
 import { type NextRequest } from "next/server";
+import { setDefaultAccountType } from "../opcionesUtils";
 
 const domain = `${process.env.HOST}:${process.env.PORT}`;
+const path = '/';
 // config default values
 export const GET = async (request:NextRequest)=>{
-    const accountTypeKey:AccountTypeKey = 'accountType';
-    const defaultAccountType:AccountType = 'main';
-    cookies().set(accountTypeKey,defaultAccountType,{domain});
+    setDefaultAccountType();
     return Response.redirect(request.nextUrl.origin);
 }
 
@@ -20,7 +20,7 @@ export const POST = async (request:NextRequest)=>{
     if(formData.has(accountTypeKey)){
         const accountTypeValue = formData.get(accountTypeKey) as string
         if(accountTypeValue) {
-            cookies().set(accountTypeKey,accountTypeValue,{domain});
+            cookies().set(accountTypeKey,accountTypeValue,{domain,path});
             notification = errorCodes.accountTypeSuccess;
         }
     }
