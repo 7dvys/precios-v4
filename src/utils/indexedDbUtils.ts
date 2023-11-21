@@ -1,9 +1,9 @@
-import { DATABASE } from "@/constants/Database";
+import { DATABASE } from "@/constants/database";
 import { DatabaseFactory } from "@/types/DatabaseFactory";
 
 const openDatabase = () => {
-    return new Promise<IDBDatabase>((resolve, reject) => {
-        const request = window.indexedDB.open(DATABASE.NAME, 1);
+    return new Promise<IDBDatabase>((resolve, reject) => {      
+        const request = window.indexedDB.open(DATABASE.NAME, 5);
         
         request.onupgradeneeded = (event:IDBVersionChangeEvent) => {
             const db = (event.target as IDBOpenDBRequest).result;
@@ -32,7 +32,7 @@ const openDatabase = () => {
     })
 }
   
-const indexedDbUtils = async <ObjectStoreElement>(objectStoreName:string):Promise<DatabaseFactory<ObjectStoreElement>> => {
+export const indexedDbUtils = async <ObjectStoreElement>(objectStoreName:string):Promise<DatabaseFactory<ObjectStoreElement>> => {
     const db = await openDatabase();
 
     const add = (elements:ObjectStoreElement[]):Promise<IDBValidKey[]>=>{
@@ -149,5 +149,3 @@ const indexedDbUtils = async <ObjectStoreElement>(objectStoreName:string):Promis
 };
 
 
-
-export {indexedDbUtils};

@@ -3,7 +3,7 @@ type EncoderableObject = {
 }
 
 type DecodedObject<PrevEncodedObjectType> = {
-    [key in keyof PrevEncodedObjectType]:string[];
+    [key in keyof PrevEncodedObjectType]:PrevEncodedObjectType[key] extends any[] ? PrevEncodedObjectType[key] : PrevEncodedObjectType[key][];
 }
 
 export const simpleDataSerializer = ()=>{

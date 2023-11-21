@@ -83,3 +83,8 @@ export type Vendor = {
     Telefono: string;
     TipoDoc: string;
 }
+
+export type UpdatesStatus = {
+    id:number,
+    status:boolean
+}

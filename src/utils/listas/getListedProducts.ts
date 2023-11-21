@@ -1,7 +1,7 @@
 import { Products } from "@/types";
 import { observacionesHasLista } from "./observacionesHasLista";
 
-export const getUnlistedProducts = ({products}:{products:Products})=>{
+export const getListedProducts = ({products}:{products:Products})=>{
     const [main,secondary] = Object.values(products).map((accountProducts)=>{
         return accountProducts.filter(({Observaciones:observaciones})=>observacionesHasLista(observaciones))
     })

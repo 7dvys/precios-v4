@@ -11,7 +11,7 @@
     --grey-1:rgba(63, 63, 64, 0.9);
     --grey-2:rgb(29, 29, 29);
 
-    --shadow-0:rgba(99, 99, 99, 0.2) 0px 2px 8px 0px;
+    --shadow-0:rgba(99, 99, 99, 0.2) 0px 2px 4px 0px;
 }
 
 *{
@@ -31,6 +31,27 @@ body{
 input:not([type="file"]),select{
     padding-left: 6px;
 }
+
+input[type="file"]::file-selector-button{
+    display: none;
+}
+
+input[type="checkbox"] {
+    vertical-align: middle; /* Alinea verticalmente en el centro */
+    font: inherit;
+    color: currentColor;
+    width: 1.15em;
+    height: 1.15em;
+    border: 0.1em solid currentColor;
+    border-radius: 0.15em;
+  }
+  
+
+input, select, span{
+    padding: 0.5rem;
+    border: 1px solid var(--grey-beige-0);
+}
+
 
 h2,h3,h4,h5{
     margin-bottom: 0.4rem;
@@ -55,8 +76,40 @@ h2,h3,h4,h5{
     flex-direction: row;
 }
 
+.flex-wrap{
+    flex-wrap: wrap;
+}
+
+.flex-column{
+    display: flex;
+    flex-direction: column;
+}
+
 .flex-gap{
     gap: 1rem;
 }
+
+.flex-gap-s{
+    gap:0.2rem;
+}
+
+.flex-gap-m{
+    gap:0.4rem;
+}
+
+.flex-gap-l{
+    gap:0.6rem;
+}
+
+.flex-gap-xl{
+    gap:0.8rem;
+}
+
+.flex-space-between{
+    justify-content: space-between;
+}
+
+
+
 
 

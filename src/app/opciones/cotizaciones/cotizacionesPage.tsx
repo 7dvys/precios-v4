@@ -63,7 +63,6 @@ export const CotizacionesPage:React.FC<{cotizacionesUtilsDependencies:Cotizacion
         setCotizaciones(currentCotizaciones);
     },[])
 
-
     const cotizacionesRef = useRef<HTMLSelectElement>(null);
     const nombreRef = useRef<HTMLInputElement>(null);
     const newCotizacionRef = useRef<HTMLInputElement>(null);

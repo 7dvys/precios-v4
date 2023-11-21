@@ -45,15 +45,6 @@ const ContabiliumOpciones:React.FC = ()=>{
                     {defaultSecondaryUser&&<a href={`/api/opciones/contabilium/?${accountTypeKey}=${secondaryAccountType}&action=${ACTIONS_KEYS.logout}`}>logout</a>}
                 </div>
             </form>
-
-            {/* <form autoComplete='off' method='POST' action='/api/opciones/accountType' className={`${containerStyles.container} ${containerStyles['container--form']}`}>
-                <h4>Tipo de cuenta</h4>
-                <select name={accountTypeKey} id={accountTypeKey} defaultValue={defaultAccountType}>
-                    <option value={mainAccountType}>primaria</option>
-                    <option value={secondaryAccountType}>secundaria</option>
-                </select>
-                <div><button>aceptar</button></div>
-            </form> */}
         </div>
     )
 }

@@ -1,6 +1,6 @@
 import { CONTABILIUM_KEYS } from "@/constants/contabilium/cookiesKeys"
 import { errorCodes } from "@/constants/opciones/notifications";
-import { login as cbLogin} from "@/services/contabilium/login"
+import { accountLogin } from "@/services/contabilium/accountLogin"
 import { AccountType, AccountTypeKey } from "@/types/Config";
 import { type NextRequest } from "next/server"
 import utils from "../opcionesUtils";
@@ -23,7 +23,7 @@ const login = async(request:NextRequest)=>{
         const accountType:AccountType = isMainAccount?'main':'secondary';
         const {setCbToken,setCbCredentials,resolveDuplicatedCbCredentials} = utils({accountType});
 
-        const token = await cbLogin({user,password});
+        const token = await accountLogin({user,password});
         
         if(!token.error){         
             resolveDuplicatedCbCredentials({user,password});
@@ -57,8 +57,8 @@ const refreshTokens = async(request:NextRequest)=>{
         const userSecondary = cookiesStore.get(userSecondaryKey)?.value as string;
         const passSecondary = cookiesStore.get(passSecondaryKey)?.value as string;
 
-        const mainToken = await cbLogin({user:userMain,password:passMain});
-        const secondaryToken = await cbLogin({user:userSecondary,password:passSecondary});
+        const mainToken = await accountLogin({user:userMain,password:passMain});
+        const secondaryToken = await accountLogin({user:userSecondary,password:passSecondary});
 
         if(!mainToken.error && !secondaryToken.error){
             setMainCbToken({token:mainToken});
@@ -76,7 +76,6 @@ const logout = (request:NextRequest)=>{
     const { searchParams } = new URL(request.url)
     const accountTypeKey:AccountTypeKey = 'accountType';
     if(searchParams.has(accountTypeKey)){
-        console.log('hola')
         const accountType:AccountType = searchParams.get(accountTypeKey) as AccountType
         const {dropCbCredentials,dropCbToken} = utils({accountType})
         dropCbToken({accountType})

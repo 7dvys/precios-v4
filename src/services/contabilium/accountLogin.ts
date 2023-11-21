@@ -1,7 +1,7 @@
 import { CbToken } from "@/types/Contabilium";
 import { RequestInit } from "next/dist/server/web/spec-extension/request";
 
-export const login = async ({user,password}:{user:string,password:string})=>{
+export const accountLogin = async ({user,password}:{user:string,password:string})=>{
     const url = 'https://rest.contabilium.com/token';
 
     const headers = new Headers();
@@ -16,7 +16,6 @@ export const login = async ({user,password}:{user:string,password:string})=>{
         method: 'POST',
         headers: headers,
         body: urlencoded,
-    //   redirect: 'follow'
         cache:'no-store'
     };
     

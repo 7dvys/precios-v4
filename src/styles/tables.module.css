@@ -1,0 +1,56 @@
+/* TABLE OPTIONS */
+.tablePanel{
+  position: sticky;
+  top: 0;
+  display: flex;
+  justify-content: space-between;
+  padding: 1rem;
+}
+
+.tablePanel span{
+    display: block;
+}
+
+.tablePanel input.pageInput{
+    width: 80px;
+}
+
+.tablePanel .pageSize{
+  cursor: pointer;
+  margin-right: 0.5rem;
+}
+
+.tablePanel .pageSize:hover{
+  text-decoration: underline;
+}
+
+.tableItems{
+  padding: 1rem;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.tableItems>tbody> tr:hover{
+  background-color: var(--grey-beige-0);
+}
+
+.tableItems>thead> tr,.tableItems tbody tr{
+  border-bottom: 1px solid var(--grey-beige-0);
+  text-align: left;
+}
+
+.tableItems td,.tableItems th{
+  padding: 0.5rem;
+  text-overflow: ellipsis;
+}
+
+.tableItems td:last-child,.tableItems th:last-child{
+  text-align: right;
+  border-left: 1px solid var(--grey-beige-0);
+}
+
+.checkBoxCol{
+  width:80px;
+}
+
+

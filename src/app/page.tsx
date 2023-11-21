@@ -1,14 +1,12 @@
-import { E } from "@/components/example";
-import { Product } from "@/types/Contabilium";
-import { getProducts } from "@/utils/contabilium/getProducts"
-import { cookies } from "next/headers";
-import { isDate } from "util/types";
- 
+import { Movimientos } from "./Movimientos";
+import { Metadata } from "next";
 
-export default async function Page() {
-  const products = await getProducts()
-  // console.log(cookies())
-  // const {mainProducts,secondaryProducts}:{mainProducts:Product[],secondaryProducts:Product[]} = await getProducts()
-  // return <E codigo={mainProducts[0].Codigo}/> 
-  return <></>
+export const metadata: Metadata = {
+  title: 'Inicio - Movimientos',
 }
+
+const MovimientosPage = ()=>{
+  return (<Movimientos/>)
+}
+
+export default MovimientosPage;

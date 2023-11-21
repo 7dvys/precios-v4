@@ -1,13 +1,14 @@
 import { RefObject } from "react"
 
-export type Option = {value:string,title?:string}
+export type Option = {value:string|number,title?:string}
 export type FieldType = 'password'|'number'|'positiveNumber'|'string'|'select'
 
 export type Field = {
     name:string,
     placeholder?:string,
     optionList:Option[],
-    type:FieldType
+    type:FieldType,
+    disabled?:boolean,
 }
 
 export type InputField = Field & {

@@ -1,7 +1,7 @@
 import { Products } from "@/types"
 import { Cotizaciones } from "@/types/Cotizaciones"
 import { simpleDataSerializer } from "../simpleDataSerializer";
-import { Observaciones } from "@/types/Contabilium";
+import { Observaciones, ObservacionesWithoutTags } from "@/types/Contabilium";
 import { isDate } from "../isDate";
 import { localeDateStringToDate } from "../localeDateStringToDate";
 
@@ -15,17 +15,18 @@ export const getLatestCotizaciones = ({products}:{products:Products}):Cotizacion
             if(!Observaciones)
             return;
 
-            const decodedObservaciones = decoder(Observaciones as string) as Observaciones;
+            const decodedObservaciones = decoder<ObservacionesWithoutTags>(Observaciones as string) ;
 
-            if(!decodedObservaciones.ultActualizacion || !decodedObservaciones.cotizacion || !decodedObservaciones.cotizacionPrecio)
+            
+
+            if(!('ultActualizacion' in decodedObservaciones) || !('cotizacion' in decodedObservaciones) || !('cotizacionPrecio' in decodedObservaciones))
             return;
 
-            const {ultActualizacion,cotizacion,cotizacionPrecio} = decodedObservaciones;
-
+            const {ultActualizacion:[ultActualizacion],cotizacion:[cotizacion],cotizacionPrecio:[cotizacionPrecio],} = decodedObservaciones;
             if(cotizacion === 'peso')
             return;
 
-            const date = isDate(new Date(ultActualizacion))?new Date(ultActualizacion):localeDateStringToDate(decodedObservaciones.ultActualizacion);
+            const date = isDate(new Date(ultActualizacion))?new Date(ultActualizacion):localeDateStringToDate(ultActualizacion);
 
             if(!date)
             return;        
