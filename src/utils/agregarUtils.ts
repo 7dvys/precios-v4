@@ -5,6 +5,7 @@ import { Products } from '@/types';
 import { ListaItem } from '@/types/Listas';
 import { simpleDataSerializer } from './simpleDataSerializer';
 import { decodeObservaciones } from './decodeObservaciones';
+import { LOCALHOST } from '@/constants/domain';
 
 export type GetListaItemsFromSheetItemsInProductsParams = {
     products:Products,
@@ -29,7 +30,7 @@ export const getXlsxWorkBookFromFileWithApi = async (file:File):Promise<(XLSX.Wo
     const data = new FormData();
     data.append('file',file);
 
-    const endpoint = 'http://localhost:3000/api/xlsx/getXlsxWorkBookFromFile';
+    const endpoint = LOCALHOST+'/api/xlsx/getXlsxWorkBookFromFile';
     const config:RequestInit = {
         method:'POST',
         body:data
@@ -89,8 +90,9 @@ export const getListaItemsFromSheetItemsInProducts = ({products,xlsxWorkbook,ove
 
     const unifiedProducts = Object.values(products).flatMap((accountProducts,index)=>accountProducts.map(product=>({...product,account:index?'secondary':'main'})))
 
-    const some = unifiedProducts.reduce((acc,{account,...product})=>{
+    const productsInSheetItems = unifiedProducts.reduce((acc,{account,...product})=>{
         const codigo = product.Descripcion;
+        const sku = product.Codigo
 
         if(!(codigo in serializedFormatedJsonSheet))
         return acc;
@@ -108,7 +110,7 @@ export const getListaItemsFromSheetItemsInProducts = ({products,xlsxWorkbook,ove
         
         if(!(codigo in acc)){
             const cbItemSkus:Record<'main'|'secondary',string[]> = {main:[],secondary:[]};
-            cbItemSkus[account as 'main'|'secondary'].push(codigo); 
+            cbItemSkus[account as 'main'|'secondary'].push(sku); 
 
             acc[codigo] = {
                 ...sheetItem,
@@ -119,7 +121,7 @@ export const getListaItemsFromSheetItemsInProducts = ({products,xlsxWorkbook,ove
             }
         }
         else{
-            acc[codigo].cbItemSkus[account as 'main'|'secondary'].push(codigo); 
+            acc[codigo].cbItemSkus[account as 'main'|'secondary'].push(sku); 
             acc[codigo].iva = product.Iva || defaultIva;
             acc[codigo].rentabilidad = product.Rentabilidad || defaultProfit;
             acc[codigo].cotizacion = inferCotizacion() || defaultExchRate;
@@ -128,12 +130,30 @@ export const getListaItemsFromSheetItemsInProducts = ({products,xlsxWorkbook,ove
         return acc;
 
     },{} as Record<string,ListaItem>)
+
+    const allSheetItems = Object.keys(serializedFormatedJsonSheet).reduce((acc,codigo)=>{
+        if(codigo in acc)
+        return acc;
+
+        const sheetItem = serializedFormatedJsonSheet[codigo];
+        const cbItemSkus:Record<'main'|'secondary',string[]> = {main:[],secondary:[]};
+
+        acc[codigo] = {
+            ...sheetItem,
+            cbItemSkus,
+            iva:sheetItem.iva || defaultIva, 
+            rentabilidad:sheetItem.rentabilidad || defaultProfit,
+            cotizacion:sheetItem.cotizacion || defaultExchRate
+        }
+
+        return acc;
+    },productsInSheetItems)
     
-    return Object.values(some)
+    return Object.values(allSheetItems)
 }
 
 export const getListaItemsFromSheetItemsInProductsWithApi = async (params:GetListaItemsFromSheetItemsInProductsParams)=>{
-    const endpoint = 'http://localhost:3000/api/xlsx/getListaItemsFromSheetItemsInProducts';
+    const endpoint = LOCALHOST+'/api/xlsx/getListaItemsFromSheetItemsInProducts';
     const config:RequestInit = {
         method:'POST',
         body:JSON.stringify(params)

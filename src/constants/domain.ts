@@ -1,0 +1,1 @@
+export const LOCALHOST=`http://${process.env.HOST}:${process.env.PORT}`

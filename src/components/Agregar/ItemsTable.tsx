@@ -3,9 +3,10 @@ import { TableColumn, TableItem, TableItemIdentifier, TablePanelInformation } fr
 import { Table } from "../Table";
 import { CSSProperties } from "react";
 import { Product } from "@/types/Contabilium";
+import { ListaItem } from "@/types/Listas";
 
 const xlsxItemStyles:CSSProperties = {
-    backgroundColor:'red'
+   backgroundColor:'var(--grey-beige-1)'
 }
 
 export const ItemsTable:React.FC<ItemsTableProps> = ({sheetItems,groupFunctions,products})=>{
@@ -29,23 +30,45 @@ export const ItemsTable:React.FC<ItemsTableProps> = ({sheetItems,groupFunctions,
         const result = mainItems+secondaryItems;
         return result===0?'sin items':result === 1?'primaria':result=== 2?'secundaria':'ambas';
     }
-    const itemsDictionary:TableItemIdentifier[] = []; 
+    const itemsDictionary:Record<string,TableItemIdentifier> = {}; 
 
-    const serializedProducts = Object.values(products).map(accountProducts=>{
+    const addToItemsDictionary = ({codigo,sku,index}:{codigo:string,sku:string|null,index:number})=>{
+        itemsDictionary[index]={codigo,sku}
+    }
+
+    const [mainSerializedProducts,secondarySerializedProducts] = Object.values(products).map(accountProducts=>{
         return accountProducts.reduce((acc,product)=>{
             const sku = product.Codigo;
             acc[sku] = product
             return acc;
         },{} as Record<string,Product>)
     })
+
+    const serializedProducts = {main:mainSerializedProducts,secondary:secondarySerializedProducts};
     const items:TableItem[] = sheetItems.flatMap(item=>{
-        const index = itemsDictionary.length-1;
-        const itemRow ={id:index,styles:xlsxItemStyles,...item,titulo:item.titulo||'sin titulo',tagsId:item.tagsId.join(',') || 'sin tags',cbItemSkus:genWithItemsFromCbItemSkus(item.cbItemSkus)}
-        const cbItemRows = Object.entries(item.cbItemSkus).flatMap(([account,skus]:[string,string[]])=>{
-            // return skus.flatMap(sku=>)
+        const newIndex = Object.keys(itemsDictionary).length;
+        const itemRow ={id:newIndex,styles:xlsxItemStyles,...item,titulo:item.titulo||'sin titulo',tagsId:item.tagsId.join(',') || 'sin tags',cbItemSkus:genWithItemsFromCbItemSkus(item.cbItemSkus)}
+        addToItemsDictionary({codigo:item.codigo,sku:null,index:newIndex});
+        const cbItemRows = Object.entries(item.cbItemSkus).flatMap(([account,skus]:[string,string[]],index)=>{
+            return skus.flatMap(sku=>{
+                const cbItem:Product = serializedProducts[account as 'main'|'secondary'][sku];
+                const itemRow ={
+                    id:newIndex+index,
+                    ...item,
+                    costo:<><p>hola</p><br/><p>holaa</p></>,
+                    codigo:sku,
+                    titulo:(account === 'main'?'primaria':'secundaria')+': '+(cbItem.Nombre),
+                    // titulo:account === 'main'?'primaria':'secundaria'+': '+('sin titulo'),
+                    tagsId:item.tagsId.join(',') || 'sin tags',
+                    cbItemSkus:genWithItemsFromCbItemSkus(item.cbItemSkus)
+                }
+                addToItemsDictionary({codigo:item.codigo,sku,index:newIndex+index})
+                return itemRow;
+            })
         })
-        return [itemRow];
+        return [itemRow,...cbItemRows];
     });
+
 
     return <Table columns={columns} items={items} groupFunctions={groupFunctions}/>
 } 

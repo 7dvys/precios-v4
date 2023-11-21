@@ -11,6 +11,7 @@ import { ItemsTable } from './ItemsTable';
 import { TableGroupFunction } from "@/types/TableTypes";
 import { genResultingItems } from "@/utils/agregarUtils";
 import { TagsPanel } from "./TagsPanel";
+import { LOCALHOST } from "@/constants/domain";
 
 export const AgregarPage:React.FC<AgregarPageProps> = ({vendors,products,cotizacionesUtilsDependencies})=>{
     if(!isClient)

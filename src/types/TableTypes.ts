@@ -7,15 +7,16 @@ export type TableColumn = {
   label: string;
   searchable: boolean;
   filterable: boolean;
+  visible?:boolean;
 };
 
 export type TableItem = {
   [key: string]: React.ReactNode | CSSProperties;
-} & { id: number,styles:CSSProperties };
+} & { id: number,styles?:CSSProperties };
 
 export type TableItemIdentifier = {
   codigo:string,
-  sku:string
+  sku:string|null
 }
 
 export type TableGroupFunction = {
