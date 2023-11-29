@@ -60,7 +60,7 @@ export const indexedDbUtils = async <ObjectStoreElement>(objectStoreName:string)
         })
     }
 
-    const update = (elements: ObjectStoreElement[]): Promise<IDBValidKey[]> => {
+    const update = (elements: (ObjectStoreElement&{id:number})[]): Promise<IDBValidKey[]> => {
         return new Promise((resolve, reject) => {
             const transaction: IDBTransaction = db.transaction([objectStoreName], 'readwrite');
             const objectStore: IDBObjectStore = transaction.objectStore(objectStoreName);
@@ -80,14 +80,14 @@ export const indexedDbUtils = async <ObjectStoreElement>(objectStoreName:string)
         });
     };
 
-    const get = (idElements:number[]):Promise<ObjectStoreElement[]>=>{
+    const get = (idElements:number[]):Promise<(ObjectStoreElement&{id:number})[]> =>{
         return new Promise( async (resolve,reject)=>{
             const transaction:IDBTransaction = db.transaction([objectStoreName]);
             const objectStore = transaction.objectStore(objectStoreName);
             
-            const getPromises:Promise<ObjectStoreElement>[] = idElements.map((id)=>{
+            const getPromises:Promise<(ObjectStoreElement&{id:number})>[] = idElements.map((id)=>{
                 return new Promise((resolve,reject)=>{
-                    const request:IDBRequest<ObjectStoreElement> = objectStore.get(id)
+                    const request:IDBRequest<(ObjectStoreElement&{id:number})> = objectStore.get(id)
                     request.onsuccess = ()=>{
                         resolve(request.result);
                     }
@@ -100,15 +100,27 @@ export const indexedDbUtils = async <ObjectStoreElement>(objectStoreName:string)
         })
     }
 
-    const getAll = ():Promise<ObjectStoreElement[]>=>{
+    const getAll = ():Promise<Record<number,(ObjectStoreElement&{id:number})>> =>{
         return new Promise((resolve,reject)=>{
             const transaction:IDBTransaction = db.transaction([objectStoreName]);
             const objectStore = transaction.objectStore(objectStoreName);
 
-            const request:IDBRequest<ObjectStoreElement[]> = objectStore.getAll();
-            request.onsuccess = ()=>{
-                resolve(request.result)
+            const elements:Record<number,(ObjectStoreElement&{id:number})> = {};
+            objectStore.openCursor().onsuccess = (event:Event)=>{
+                const cursor = (event.target as IDBRequest<IDBCursorWithValue|null>).result;
+                if(cursor){
+                    const element = cursor.value;
+                    elements[element.id] = element;
+                    cursor.continue()
+                }
+                else
+                resolve(elements)
             }
+
+            // const request:IDBRequest<(ObjectStoreElement&{id:number})[]> = objectStore.getAll();
+            // request.onsuccess = ()=>{
+            //     resolve(request.result)
+            // }
         })
     } 
 

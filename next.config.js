@@ -2,7 +2,7 @@
 const nextConfig = {
     env:{
         HOST:"localhost",
-        PORT:"3001"
+        PORT:"3000"
     }
 }
 

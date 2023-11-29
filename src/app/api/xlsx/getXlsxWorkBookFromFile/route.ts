@@ -1,4 +1,4 @@
-import { getXlsxWorkBookFromFile } from "@/utils/agregarUtils";
+import { getXlsxWorkBookFromFile } from "@/utils/xlsx/getXlsxWorkBookFromFile";
 import { NextRequest } from "next/server";
 
 export const POST = async (req:NextRequest)=>{

@@ -32,19 +32,22 @@ const getSearchableColumns = ({columns}:{columns:TableColumn[]})=>{
 
 const passAllFilters = ({filters,item}:{filters:NodeListOf<HTMLSelectElement>,item:TableItem})=>{
     const filtersEntries = Array.from(filters).map((filter)=>({key:filter.name,value:filter.value}))
-    return !filtersEntries.some(({key,value})=>{
-        return value === 'none'?false:item[key] !== value;
-    })
+    return !filtersEntries.some(({key,value})=>
+        value === 'none'?false:item[key] !== value
+    )
 }
 
 const passSearchFilter = ({search,searchableColumns,item}:{search:string,searchableColumns:string[],item:TableItem})=>{
-    return searchableColumns.some(keyColumn=>(item[keyColumn] as string|number).toString().toUpperCase().includes(search.toUpperCase()));
+    console
+    return searchableColumns.some(keyColumn=>
+        (item[keyColumn] as string|number).toString().toUpperCase().includes(search.toUpperCase())
+    )
 }
 // END FUNCTIONS
 
 // COMPONENTS
 export const Table:React.FC<TableProps> = ({columns,items,groupFunctions,customStyles,panelInformation})=>{
-    const maskPanelInformation = {items:items.length,...panelInformation}
+    const maskPanelInformation = {elementos:items.length,...panelInformation}
     
     const [filteredItems,setFilteredItems] = useState<TableItem[]>(items);
     const [selectedItems,setSelectedItems] = useState<number[]>([]);
@@ -120,7 +123,10 @@ const TablePanelSearch:React.FC<TablePanelSearchPros> = ({searchRef})=>(
 
 // TablePanelFilter
 const TablePanelFilter:React.FC<Filter> = ({keyColumn,values,label})=>(
-    <Select type="select" placeholder={label || keyColumn} optionList={values} name={keyColumn}/>
+    <select name={keyColumn} id="">
+        <option value="none">{label || keyColumn}</option>
+        <Options optionList={values}/>
+    </select>
 )
 
 
@@ -200,20 +206,20 @@ const TableItemHeaderCheckbox:React.FC<TableItemsHeaderCheckbox> = ({selectedIte
             return clearSelections()
          
             const groupFunction = (groupFunctions.find(({label})=>label===functionName) as TableGroupFunction).functionHandler;
-            return groupFunction(selectedItems);
+            groupFunction(selectedItems);
+            return clearSelections()
         }
+
     }
     
-    return (
-        <>
-            {withCheckedItems && <select onClick={groupFunctionHandler} read-only={true} name="groupFunction"><Options optionList={[clearSelectionsOption,...groupFunctionsOptionList]} placeholder="Accion"/></select>}
-        </>
-    )
+    return <select onClick={groupFunctionHandler} onChange={()=>{}} value={'none'} name="groupFunction"><Options optionList={[clearSelectionsOption,...groupFunctionsOptionList]} placeholder="Accion"/></select>
 }
 
 
 const TableItems:React.FC<TableItemsProps> = ({columns,items,setSelectedItems,selectedItems,groupFunctions})=>{
     const renderCheckboxes = groupFunctions !== undefined;
+    const visibleColumns = columns.filter(({visible})=>visible!== false).map(({keyColumn})=>keyColumn);
+    const isVisibleColumn = (keyColumn:string)=>visibleColumns.some(visibleKeyColumn=>keyColumn===visibleKeyColumn);
     
     if(items.length)
     return (
@@ -223,7 +229,7 @@ const TableItems:React.FC<TableItemsProps> = ({columns,items,setSelectedItems,se
                     <tr>
                         {renderCheckboxes && <th className={tableStyles.checkBoxCol}><TableItemHeaderCheckbox groupFunctions={groupFunctions} setSelectedItems={setSelectedItems} selectedItems={selectedItems}/></th>}
                         {columns.map(({keyColumn,label})=>
-                            <th key={keyColumn}>{label}</th>
+                            <>{isVisibleColumn(keyColumn) && <th key={keyColumn}>{label}</th>}</>
                         )}
                     </tr>
                 </thead>
@@ -238,8 +244,8 @@ const TableItems:React.FC<TableItemsProps> = ({columns,items,setSelectedItems,se
                             </td>
                         }
                         
-                        {Object.entries(item).map(([key, value], index) => 
-                            (key !== 'id' && key !== 'styles') && <td key={index}>{((value === 'string' && (value as string).trim()) || value) as React.ReactNode}</td>
+                        {Object.entries(item).map(([key, value]) => 
+                            isVisibleColumn(key) && <td key={key}>{((value === 'string' && (value as string).trim()) || value) as React.ReactNode}</td>
                         )}
                     </tr>
                 </Fragment>

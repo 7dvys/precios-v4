@@ -1,46 +1,48 @@
-import { Products } from "@/types";
 import { Lista, ListaItem, Tag } from "@/types/Listas";
-import { simpleDataSerializer } from "../simpleDataSerializer";
-import { ObservacionesWithTags, Product } from "@/types/Contabilium";
+import { DecodedObject, simpleDataSerializer } from "../simpleDataSerializer";
+import { ObservacionesWithTags } from "@/types/Contabilium";
 import { AccountType } from "@/types/Config";
 import { inferListasUtils } from "./inferListasUtils";
+import { genItemsFromLista } from "./genItemsFromLista";
+import { Products } from "@/types/Products";
 
 const {decoder} = simpleDataSerializer()
 
-export const inferListas = ({products}:{products:Products}):Lista[]=>{
+export const inferListas = ({products}:{products:Products}):Lista[] =>{
     const listas:Lista[] = [];
     const {setLista,getLista,addItemToLista,addCbItemSkuToItemLista,addTagToLista,updateListaType,isSetItemOnLista} = inferListasUtils({listas})
+    Object.entries(products).forEach(([account,accountProducts])=>{
 
-    Object.entries(products ).forEach(([account,accountProducts])=>{
         accountProducts.forEach((product)=>{
             const {
                 Codigo:sku,
                 Observaciones:observaciones,
                 Descripcion:codigo,
                 Nombre:titulo,
-                CodigoBarras:proveedorId,
+                CodigoBarras,
                 Rentabilidad:rentabilidad,
                 Iva:iva,
                 CostoInterno:costo
             } = product
 
-            if(!observaciones)
-            return false;
+            const decodedObservaciones = decoder<ObservacionesWithTags>(observaciones) as DecodedObject<ObservacionesWithTags>;
 
-            const decodedObservaciones = decoder<ObservacionesWithTags>(observaciones);
-
-            if(!('lista' in decodedObservaciones) || !('tagsId' in decodedObservaciones) || !('cotizacion' in decodedObservaciones) || !('proveedor' in decodedObservaciones))
-            return ;      
+            // if(!('lista' in decodedObservaciones) || !('tagsId' in decodedObservaciones) || !('cotizacion' in decodedObservaciones) || !('proveedor' in decodedObservaciones))
+            // return ;      
     
-            const {lista:[listaTitulo],tagsId,cotizacion:[cotizacion],proveedor:[proveedor]} = decodedObservaciones;
+            const {lista:[listaName],tagsId,cotizacion:[cotizacion],proveedor} = decodedObservaciones;
+
+            const vendorId = Number(CodigoBarras) || 0;
+            const vendor = proveedor[0] || 'sin proveedor';
+            const listaNameOrDefault = listaName || 'sin proveedor';
 
             const item:ListaItem = {codigo,titulo,tagsId,costo,iva,rentabilidad,cotizacion:cotizacion||'peso',cbItemSkus:{main:[],secondary:[]}};
 
             item.cbItemSkus[account as 'main'|'secondary'].push(sku);
         
-            const lista = getLista({searchTitulo:listaTitulo,searchProveedorId:Number(proveedorId)});
+            const lista = getLista({searchName:listaNameOrDefault});
 
-            const inferTags = ():Tag[]=>{
+            const inferTags = ():Record<string,Tag> =>{
                 return tagsId.reduce((acc,tagId)=>{
                     const tag = (decodedObservaciones)[tagId]
 
@@ -48,20 +50,28 @@ export const inferListas = ({products}:{products:Products}):Lista[]=>{
                     return acc;
                 
                     const [porcentual,fijo] = tag;
-                    const newTag:Tag = {id:tagId,descripcion:'',porcentual,fijo};
-                    acc.push(newTag)
+                    acc[tagId] = {descripcion:'',porcentual,fijo};
                     return acc;
-                },[] as Tag[])
+                },{} as Record<string,Tag>)
             }
             
             const inferedTags = inferTags()
-            
+                        
             if(!lista)
-            setLista({titulo:listaTitulo,proveedor,proveedorId:Number(proveedorId),items:[item],tags:inferedTags,type:account as AccountType} as Lista)   
-        
+            setLista({
+                name:listaNameOrDefault,
+                vendor,
+                vendorId:vendorId,
+                xlsxSheets:[],
+                inferedItems:[item],
+                items:[item],
+                tags:inferedTags,
+                type:account as AccountType
+            })   
+
             else{
-                const {titulo,proveedorId,type} = lista;
-                const searchListaParams = {searchProveedorId:proveedorId,searchTitulo:titulo}
+                const {name,type} = lista;
+                const searchListaParams = {searchName:name}
                 const isItemOnLista = isSetItemOnLista(searchListaParams,item);
 
                 if(!isItemOnLista)
@@ -69,8 +79,8 @@ export const inferListas = ({products}:{products:Products}):Lista[]=>{
                 else
                 addCbItemSkuToItemLista(searchListaParams,item,account as 'main'|'secondary',sku);
 
-                inferedTags.forEach(tag=>{
-                    addTagToLista(searchListaParams,tag);
+                Object.entries(inferedTags).forEach(([tagId,tag])=>{
+                    addTagToLista(searchListaParams,{tag,tagId});
                 })
 
                 if(type !== account)
@@ -79,5 +89,10 @@ export const inferListas = ({products}:{products:Products}):Lista[]=>{
         })
     })
 
-    return listas;
+    const listasWithItems = listas.map(lista=>{
+        lista.items = genItemsFromLista({lista,xlsxSheetItems:[]});
+        return lista;
+    })
+    
+    return listasWithItems;
 }

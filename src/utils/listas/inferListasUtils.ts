@@ -1,29 +1,23 @@
 import { AccountType } from "@/types/Config";
 import { Lista, ListaItem, Tag } from "@/types/Listas";
 
-type ListaSearchCriteria = { searchTitulo: string; searchProveedorId: number };
+type ListaSearchCriteria = { searchName: string};
 
 
 export const inferListasUtils = ({listas}:{listas:Lista[]})=>{
     
-    const setLista = ({titulo,proveedorId,tags,items,type,proveedor}:Lista)=>{
-        const newLista:Lista = {titulo,proveedorId,proveedor,tags,items,type,} as Lista
+    const setLista = (lista:Lista)=>{
+        const newLista:Lista = lista 
         listas.push(newLista);
     }
     
-    const getLista = ({ searchTitulo, searchProveedorId }:ListaSearchCriteria) => {
-        return listas.find(({ titulo, proveedorId }) => {
-            const isSameTitulo = searchTitulo === titulo;
-            const isSameProveedor = searchProveedorId === proveedorId;
-            const isSetProveedor = searchProveedorId;
-    
-            return (isSameTitulo && isSameProveedor) || (isSameTitulo && !isSetProveedor);
-        });
+    const getLista = ({ searchName }:ListaSearchCriteria) => {
+        return listas.find(({ name }) => searchName === name);
     }
 
-    const modifyLista = ({searchTitulo,searchProveedorId}:ListaSearchCriteria,callback:(lista:Lista)=>void)=>{
+    const modifyLista = ({searchName}:ListaSearchCriteria,callback:(lista:Lista)=>void)=>{
         listas.forEach(lista=>{
-            if(lista.titulo === searchTitulo && lista.proveedorId === searchProveedorId){
+            if(lista.name === searchName){
                 callback(lista);
             }
         })
@@ -38,20 +32,20 @@ export const inferListasUtils = ({listas}:{listas:Lista[]})=>{
     const isSetItemOnLista = (listaSearchCriteria:ListaSearchCriteria,item:ListaItem)=>{
         const lista = getLista(listaSearchCriteria);
         if(lista)
-        return lista.items.some(({codigo})=>codigo===item.codigo)
+        return lista.inferedItems.some(({codigo})=>codigo===item.codigo)
 
         return false
     }
 
     const addItemToLista = (listaSearchCriteria:ListaSearchCriteria, item:ListaItem)=>{
         modifyLista(listaSearchCriteria,(lista)=>{
-            lista.items.push(item);
+            lista.inferedItems.push(item);
         })
     } 
 
     const addCbItemSkuToItemLista = (listaSearchCriteria:ListaSearchCriteria,item:ListaItem,account:'main'|'secondary',sku:string)=>{
         modifyLista(listaSearchCriteria,(lista)=>{
-            lista.items.forEach((listaItem)=>{
+            lista.inferedItems.forEach((listaItem)=>{
                 if(listaItem.codigo === item.codigo)
                 listaItem.cbItemSkus[account].push(sku);
             })
@@ -60,8 +54,8 @@ export const inferListasUtils = ({listas}:{listas:Lista[]})=>{
 
     const updateItem = (listaSearchCriteria:ListaSearchCriteria,item:ListaItem)=>{
         modifyLista(listaSearchCriteria,(lista)=>{
-            const prevItems = lista.items
-            lista.items = prevItems.map(prevItem=>{
+            const prevItems = lista.inferedItems
+            lista.inferedItems = prevItems.map(prevItem=>{
                 if(prevItem.codigo == item.codigo)
                 return {...prevItem,...item};
 
@@ -69,14 +63,10 @@ export const inferListasUtils = ({listas}:{listas:Lista[]})=>{
             })
         })
     }
-
-    const isSetTag = ({lista,tag}:{lista:Lista,tag:Tag})=>{
-        return lista.tags.some(({id})=>id === tag.id)
-    }
     
-    const addTagToLista = ({searchTitulo,searchProveedorId}:ListaSearchCriteria,tag:Tag)=>{
-        modifyLista({searchProveedorId,searchTitulo},(lista)=>{
-            !isSetTag && lista.tags.push(tag);
+    const addTagToLista = (listaSearchCriteria:ListaSearchCriteria,{tag,tagId}:{tag:Tag,tagId:string})=>{
+        modifyLista(listaSearchCriteria,(lista)=>{
+            lista.tags[tagId] = tag;
         })
     }
 

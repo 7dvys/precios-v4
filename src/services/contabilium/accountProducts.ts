@@ -99,7 +99,9 @@ export const getAccountProducts = async ({token}:{token:string})=>{
         })
         
         allProducts.push(...Items);
-        return allProducts
+
+
+        return allProducts.filter(product=>product.Tipo === 'Producto')
     }
     catch(error){
         revalidateTag('accountProducts')

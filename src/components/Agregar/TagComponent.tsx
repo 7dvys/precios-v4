@@ -1,32 +1,40 @@
-import { Tag } from "@/types/Listas"
-import { CSSProperties, Dispatch, Fragment, SetStateAction, useState } from "react"
+import { tagComponentStyles } from "@/styles/TagComponentStyles";
 import { PenIcon } from "../icons/Pen"
-import { LabelWrapper } from "../LabelWrapper"
+import { TagComponentProps } from "@/types/TagComponentTypes"
 
-type TagComponentProps = Tag & {
-    setTags:Dispatch<SetStateAction<Tag[]>>
-}
+export const TagComponent:React.FC<TagComponentProps> = ({tagId,descripcion,porcentual,fijo,addTag,removeTag})=>{
+    const editTaghandler = (tagId:string)=>{
+        const descripcion = prompt('descripcion') || '';
 
-const tagStyles:CSSProperties = {
-    padding:'0.5rem',
-    flexGrow:0,
-    flexShrink:0,
-    border:'1px solid var(--grey-beige-0)',
-    borderRadius:2,
-}
+        const fijo = Number(prompt('fijo','0'))
+        if(isNaN(fijo)){
+            alert('debes colocar un numero valido o 0.')
+            return;
+        }
 
-export const TagComponent:React.FC<TagComponentProps> = ({id,descripcion,porcentual,fijo,setTags})=>{
-    
-    const editPromps = ()=>{
-        alert('estas editando')
+        const porcentual = Number(prompt('porcentual','0'))
+        if(isNaN(porcentual)){
+            alert('debes colocar un numero valido o 0.')
+            return;
+        } 
+
+        const newTag = {descripcion,fijo,porcentual}
+        addTag({tagId,tag:newTag});
     }
     
+    const removeTagHandler = (tagId:string)=>{
+        const removeConfirmation = confirm('eliminar '+tagId);
+        if(removeConfirmation)
+        removeTag({tagId})
+    }
+
     return (
-        <div title={descripcion} style={tagStyles} className="flex-row flex-gap-l">
-            <p><strong>id: </strong>{id}</p>
+        <div title={descripcion} style={tagComponentStyles} className="flex-row flex-gap-l">
+            <p><strong>id: </strong>{tagId}</p>
             <p><strong>fijo: </strong>{fijo>0?'+'+fijo:'-'+fijo}</p>
             <p><strong>porcentual: </strong>{porcentual>0?'+'+porcentual:'-'+porcentual}%</p>
-            <div onClick={editPromps}>{PenIcon}</div>
+            <div onClick={()=>editTaghandler(tagId)}>{PenIcon}</div>
+            <div onClick={()=>removeTagHandler(tagId)}>X</div>
         </div>
     )
 

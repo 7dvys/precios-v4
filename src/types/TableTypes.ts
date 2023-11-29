@@ -1,5 +1,6 @@
 import { CSSProperties, Dispatch, RefObject, SetStateAction } from "react";
 import { Option } from "./FormFields";
+import { AccountType } from "./Config";
 
 // Tipos relacionados con TablePanel
 export type TableColumn = {
@@ -17,6 +18,7 @@ export type TableItem = {
 export type TableItemIdentifier = {
   codigo:string,
   sku:string|null
+  account:AccountType|null
 }
 
 export type TableGroupFunction = {

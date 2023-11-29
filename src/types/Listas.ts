@@ -1,3 +1,5 @@
+import { XlsxSheet } from "./AgregarTypes";
+
 export type ListaItem = {
     codigo:string;
     titulo:string | null;
@@ -10,22 +12,27 @@ export type ListaItem = {
 }
 
 export type Tag = {
-    id:string;
     descripcion:string;
     fijo:number;
     porcentual:number;
 }
 
+export type Tags = Record<string,Tag>;
+
 export type Lista = {
-    id:number;
-    titulo:string;
-    proveedor:string;
-    proveedorId:number;
-    tags:Tag[];
+    name:string;
+    vendor:string;
+    vendorId:number;
+    tags:Tags;
+    xlsxSheets:XlsxSheet[];
+    inferedItems:ListaItem[];
     items:ListaItem[];
     type:'main'|'secondary'|'both';
 }
 
+// export type Listas = Record<string,Lista>;
+export type SerializedItemsFromLista = Record<string,ListaItem>;
+
+export type DbLista = Lista&{id:number}
 
 
-export type InferedLista = Omit<Lista,'id'|'items'>;

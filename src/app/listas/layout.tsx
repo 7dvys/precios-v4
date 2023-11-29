@@ -4,7 +4,7 @@ import { Aside } from "../../components/Listas/Aside";
 import Loading from "./loading";
 
 
-const Layout = ({children}:{children:React.ReactNode})=>{
+export default ({children}:{children:React.ReactNode})=>{
 
     const MainContent:React.FC = ()=>(<>{children}</>)
 
@@ -14,5 +14,3 @@ const Layout = ({children}:{children:React.ReactNode})=>{
         </Suspense>
     )
 }
-
-export default Layout;

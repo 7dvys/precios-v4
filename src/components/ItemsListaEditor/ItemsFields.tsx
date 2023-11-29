@@ -1,64 +1,22 @@
-import { ItemsFieldsProps, XlsxListaItems } from "@/types/AgregarTypes";
+import * as XLSX from 'xlsx';
+import { ItemsFieldsProps, XlsxSheet } from "@/types/AgregarTypes";
 import { Option } from "@/types/FormFields";
-import { getXlsxWorkBookFromFileWithApi, getListaItemsFromSheetItemsInProductsWithApi } from "@/utils/agregarUtils";
-import { CSSProperties, Dispatch, SetStateAction, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import containerStyles from '@/styles/containers.module.css'
 import { LabelWrapper } from "../LabelWrapper";
 import { Options } from "../Options";
+import { getXlsxWorkBookFromFileWithApi } from '@/utils/xlsx/getXlsxWorkBookFromFileWithApi';
+import { getXlsxSheetFromMatchesBetweenProductsAndSheetWithApi } from '@/utils/listas/getXlsxSheetFromMatchesBetweenProductsAndSheetWithApi';
+import { SheetLabels } from './SheetLabels';
 
 
-const sheetLabelStyles:CSSProperties = {
-    padding:'0.4rem',
-    flexGrow:0,
-    flexShrink:0,
-    border:'1px solid var(--grey-beige-0)',
-    borderRadius:2,
 
-}
-
-type SheetInformation = {fileName:string,sheetName:string};
-type SheetLabelProps = SheetInformation & {
-    removeXlsxListaItems:(sheetInformation:SheetInformation)=>void
-}
-
-const SheetLabel:React.FC<SheetLabelProps> = ({fileName,sheetName,removeXlsxListaItems})=>{
-    const title = `archivo: ${fileName}\nhoja: ${sheetName}`;
-    return (
-        <div onClick={()=>removeXlsxListaItems({fileName,sheetName})} title={title} style={sheetLabelStyles} className="flex-row flex-gap-l">
-            {sheetName}
-        </div>
-    )
-}
-
-type SheetLabelsProps = {
-    xlsxListaItemsList:XlsxListaItems[],
-    setXlsxListaItemsList:Dispatch<SetStateAction<XlsxListaItems[]>>
-}
-
-const SheetLabels:React.FC<SheetLabelsProps> = ({xlsxListaItemsList,setXlsxListaItemsList})=>{
-    const removeXlsxListaItems = (sheetInformation:SheetInformation)=>{
-        const removeConfirmation = confirm('Esta seguro que desea borrar la hoja '+sheetInformation.sheetName);
-        if(removeConfirmation)
-        setXlsxListaItemsList(xlsxListaItemsList=>{
-            const newXlsxListaItems = xlsxListaItemsList.filter(({sheetName,fileName})=>(sheetName !== sheetInformation.sheetName && fileName !== sheetInformation.fileName))
-            return newXlsxListaItems;
-        })  
-    }
-    return (
-        <LabelWrapper labelText="Hojas acumuladas">
-            {xlsxListaItemsList.map(({fileName,sheetName})=>SheetLabel({fileName,sheetName,removeXlsxListaItems}))}
-        </LabelWrapper>
-    )
-}
-
-export const ItemsFields:React.FC<ItemsFieldsProps> = ({setXlsxWorkbook,xlsxListaItemsList,xlsxSheetItems,xlsxWorkbook,setXlsxSheetItems,setXlsxListaItemsList,cotizaciones,products})=>{
-
+export const ItemsFields:React.FC<ItemsFieldsProps> = ({cotizaciones,products,xlsxSheets,xlsxSheet,setXlsxSheet,removeSheet,addSheet})=>{
+    const [xlsxWorkbook,setXlsxWorkbook] = useState<XLSX.WorkBook>({SheetNames:['none']} as XLSX.WorkBook);
     const [isLoading,setIsLoading] = useState<boolean>(false);
-    const sheetNamesOptionList:Option[] = xlsxWorkbook.SheetNames.map(sheetName=>({value:sheetName}))
-    const cotizacionesOptionList:Option[] = Object.entries(cotizaciones).map(([name,exchangeRate]:[string,number])=>({value:name,title:`${name} - ${exchangeRate}`}))
-    
+
     const changeXlsxFileHandler = async (event:React.ChangeEvent<HTMLInputElement>)=>{
-        cancelHandler()
+        cancelSheet()
         setIsLoading(true);
         const xlsxFile = (event.target.files as FileList)[0];
         const xlsxWorkBook = await getXlsxWorkBookFromFileWithApi(xlsxFile);
@@ -67,14 +25,15 @@ export const ItemsFields:React.FC<ItemsFieldsProps> = ({setXlsxWorkbook,xlsxList
     }   
 
     const getFieldsValues = ()=>{
-        const sheetName = (xlsxSheetRef.current as HTMLSelectElement).value
-        const colCod = (colCodRef.current as HTMLInputElement).value
-        const colCost = (colCostoRef.current as HTMLInputElement).value
-        const colTitle = (colTitleRef.current as HTMLInputElement).value
-        const colIva = (colIvaRef.current as HTMLInputElement).value
-        const colProfit = (colProfitRef.current as HTMLInputElement).value
-        const colExchRate = (colExchRateRef.current as HTMLInputElement).value
-        const colTags = (colTagsRef.current as HTMLInputElement).value
+        const fileName = (xlsxFileRef.current as HTMLInputElement).value;
+        const sheetName = (xlsxSheetRef.current as HTMLSelectElement).value;
+        const colCod = (colCodRef.current as HTMLInputElement).value;
+        const colCost = (colCostoRef.current as HTMLInputElement).value;
+        const colTitle = (colTitleRef.current as HTMLInputElement).value;
+        const colIva = (colIvaRef.current as HTMLInputElement).value;
+        const colProfit = (colProfitRef.current as HTMLInputElement).value;
+        const colExchRate = (colExchRateRef.current as HTMLInputElement).value;
+        const colTags = (colTagsRef.current as HTMLInputElement).value;
 
         const defaultIva = Number((defaultIvaRef.current as HTMLInputElement).value)
         const defaultProfit = Number((defaultRentabilidadRef.current as HTMLInputElement).value)
@@ -82,7 +41,7 @@ export const ItemsFields:React.FC<ItemsFieldsProps> = ({setXlsxWorkbook,xlsxList
 
         const overWrite = (overWriteRef.current as HTMLSelectElement).value === 'true';
 
-        return {sheetName,colCod,colCost,colTitle,colIva,colProfit,colExchRate,colTags,defaultIva,defaultProfit,defaultExchRate,overWrite}
+        return {fileName,sheetName,colCod,colCost,colTitle,colIva,colProfit,colExchRate,colTags,defaultIva,defaultProfit,defaultExchRate,overWrite}
     }
 
     const clearFieldsValues = ()=>{
@@ -103,13 +62,15 @@ export const ItemsFields:React.FC<ItemsFieldsProps> = ({setXlsxWorkbook,xlsxList
 
     const confirmHandler = async ()=>{
         const fieldsValues = getFieldsValues()
-        const {colCod,colCost} = fieldsValues;
+        const {colCod,colCost,fileName,sheetName} = fieldsValues;
         if(!colCod || !colCost)
-        return alert('Debes completar las columnas obligatorias.')
+        return alert('Debes completar las columnas obligatorias.')    
     
         setIsLoading(true);
+        const xlsxSheetItems = await getXlsxSheetFromMatchesBetweenProductsAndSheetWithApi({xlsxSheets,xlsxWorkbook,products,...fieldsValues,defaultExchRate:fieldsValues.defaultExchRate==='none'?'peso':fieldsValues.defaultExchRate})
+        if(xlsxSheetItems === false)
+        return setIsLoading(false);
 
-        const xlsxSheetItems = await getListaItemsFromSheetItemsInProductsWithApi({xlsxListaItemsList,xlsxWorkbook,products,...fieldsValues,defaultExchRate:fieldsValues.defaultExchRate==='none'?'peso':fieldsValues.defaultExchRate})
         const xlsxSheetItemsDoesntHaveItems = xlsxSheetItems.length === 0;
         if(xlsxSheetItemsDoesntHaveItems){
             alert('Esta hoja no tiene articulos.')
@@ -117,31 +78,17 @@ export const ItemsFields:React.FC<ItemsFieldsProps> = ({setXlsxWorkbook,xlsxList
             return;
         }
         setIsLoading(false);
-        setXlsxSheetItems(xlsxSheetItems);
+        setXlsxSheet({sheetName,fileName,items:xlsxSheetItems});
     }
 
-    const cancelHandler = ()=>{
+    const cancelSheet = ()=>{
         clearFieldsValues();
-        setXlsxSheetItems([]);
+        setXlsxSheet({fileName:'',sheetName:'',items:[]});
     }
 
     const agregarHandler = ()=>{
-        const fileName = ((xlsxFileRef.current as HTMLInputElement).files as FileList)[0].name;
-        const sheetName = (xlsxSheetRef.current as HTMLSelectElement).value
-
-        if(fileName && sheetName && xlsxSheetItems.length){
-            setXlsxListaItemsList(xlsxListaItemsList=>{
-                const xlsxListaItemsWithoutCurrentXlsxSheet = xlsxListaItemsList.filter(xlsxListaItems=>{
-                    const isSameFile = fileName === xlsxListaItems.fileName;
-                    const isSameSheet = sheetName === xlsxListaItems.sheetName;
-                    return !(isSameFile && isSameSheet);
-                })
-                const newXlsxListaItems:XlsxListaItems = {fileName,sheetName,items:xlsxSheetItems}
-
-                return [...xlsxListaItemsWithoutCurrentXlsxSheet,newXlsxListaItems];
-            })
-            cancelHandler();
-        }
+        addSheet({xlsxSheet});
+        cancelSheet();
     }
 
     const xlsxFileRef = useRef<HTMLInputElement>(null);
@@ -157,6 +104,9 @@ export const ItemsFields:React.FC<ItemsFieldsProps> = ({setXlsxWorkbook,xlsxList
     const defaultRentabilidadRef = useRef<HTMLInputElement>(null);
     const defaultCotizacionRef = useRef<HTMLSelectElement>(null);
     const overWriteRef = useRef<HTMLSelectElement>(null);
+
+    const sheetNamesOptionList:Option[] = xlsxWorkbook.SheetNames.map(sheetName=>({value:sheetName}))
+    const cotizacionesOptionList:Option[] = Object.entries(cotizaciones).map(([name,exchangeRate]:[string,number])=>({value:name,title:`${name} - ${exchangeRate}`}))
     
     return (
         <div className={`${containerStyles.container} flex-column flex-gap-xl`}>
@@ -174,13 +124,13 @@ export const ItemsFields:React.FC<ItemsFieldsProps> = ({setXlsxWorkbook,xlsxList
                             <option value="false">no</option>
                         </select>
                     </LabelWrapper>
-                    {xlsxListaItemsList.length>0 && <SheetLabels xlsxListaItemsList={xlsxListaItemsList} setXlsxListaItemsList={setXlsxListaItemsList}/>}
+                    {xlsxSheets.length>0 && <SheetLabels xlsxSheets={xlsxSheets} removeSheet={removeSheet}/>}
                 </div>
                 
                 <div className='flex-row flex-gap-s'>
+                    {xlsxSheet.items.length > 0 && <input onClick={agregarHandler} disabled={isLoading} type="submit" value="agregar" />}
+                    {xlsxSheet.items.length > 0 && <input disabled={isLoading} onClick={cancelSheet} type="submit" value="cancelar" />}
                     <input disabled={isLoading} onClick={confirmHandler} type="submit" value="confirmar" />
-                    {xlsxSheetItems.length > 0 && <input disabled={isLoading} onClick={cancelHandler} type="submit" value="cancelar" />}
-                    {xlsxSheetItems.length > 0 && <input onClick={agregarHandler} disabled={isLoading} type="submit" value="agregar" />}
                 </div>
 
             </div>

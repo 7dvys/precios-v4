@@ -1,10 +1,11 @@
 import { Dispatch, SetStateAction } from "react";
-import { Products } from ".";
+import { Products } from "./Products";
 import { Vendor } from "./Contabilium";
 import { Cotizaciones, CotizacionesUtilsDependencies } from "./Cotizaciones";
-import { Lista, ListaItem } from "./Listas";
+import { Lista, ListaItem, Tag, Tags } from "./Listas";
 import * as XLSX from 'xlsx';
-import { TableGroupFunction } from "./TableTypes";
+import { AddSheet, AddTag, RemoveListaItem, RemoveListaItemSku, RemoveSheet, RemoveTag, SetNameVendorAndType } from "./UseListasTypes";
+import { TableGroupFunction, TableItem } from "./TableTypes";
 
 
 export type AgregarPageProps = {
@@ -13,29 +14,42 @@ export type AgregarPageProps = {
     vendors:Vendor[];
 }
 
+export type ItemsListaEditorProps = {
+    lista:Lista;
+    cotizaciones:Cotizaciones;
+    products:Products;
+    removeSheet:RemoveSheet;
+    addSheet:AddSheet;
+    addTag:AddTag;
+    removeTag:RemoveTag;
+    removeListaItem:RemoveListaItem;
+    removeListaItemSku:RemoveListaItemSku;
+    readOnly:boolean;
+}  
+
+export type SheetInformation = {fileName:string,sheetName:string};
+
 export type ListaFieldsProps = {
     vendors:Vendor[];
-    setLista:Dispatch<SetStateAction<Lista>>;
+    setNameVendorAndType:SetNameVendorAndType
 }
 
 export type ItemsFieldsProps = {
     cotizaciones:Cotizaciones;
     products:Products;
-    setXlsxWorkbook:Dispatch<SetStateAction<XLSX.WorkBook>>;
-    xlsxWorkbook:XLSX.WorkBook;
-    setXlsxSheetItems:Dispatch<SetStateAction<ListaItem[]>>;
-    xlsxSheetItems:ListaItem[];
-    xlsxListaItemsList:XlsxListaItems[];
-    setXlsxListaItemsList:Dispatch<SetStateAction<XlsxListaItems[]>>;
+    xlsxSheets:XlsxSheet[];
+    xlsxSheet:XlsxSheet;
+    setXlsxSheet:Dispatch<SetStateAction<XlsxSheet>>;
+    removeSheet:RemoveSheet;
+    addSheet:AddSheet;
 }
 
 export type ItemsTableProps = {
-    products:Products;
-    sheetItems:ListaItem[]
-    groupFunctions:TableGroupFunction[]
+    tableItems:TableItem[]
+    groupFunctions: TableGroupFunction[]|undefined
 }
 
-export type XlsxListaItems = {
+export type XlsxSheet = {
     fileName:string;
     sheetName:string;
     items:ListaItem[];
@@ -76,3 +90,5 @@ export type FormatedJsonSheetItem = {
 
 
 export type FormatedJsonSheet = FormatedJsonSheetItem[]
+
+export type SerializedFormatedJsonSheet = Record<string, FormatedJsonSheetItem>

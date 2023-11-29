@@ -1,8 +1,8 @@
-type EncoderableObject = {
+export type EncoderableObject = {
     [key:string]:string|number|(string|number)[];
 }
 
-type DecodedObject<PrevEncodedObjectType> = {
+export type DecodedObject<PrevEncodedObjectType> = {
     [key in keyof PrevEncodedObjectType]:PrevEncodedObjectType[key] extends any[] ? PrevEncodedObjectType[key] : PrevEncodedObjectType[key][];
 }
 
