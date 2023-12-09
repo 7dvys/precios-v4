@@ -10,7 +10,7 @@ export type SetNameVendorAndTypeParams = {
     name:string,
     vendor:string,
     vendorId:number,
-    type:'main'|'secondary'|'both',
+    type:AccountType|'both',
 }
 
 export type SetNameVendorAndType = ({ name, vendor, vendorId }: SetNameVendorAndTypeParams) => void;
@@ -39,5 +39,11 @@ export type RemoveListaItem = ({ codigo }: {
 export type RemoveListaItemSku = ({ codigo, sku, account }: {
     codigo: string;
     sku: string;
+    account:AccountType
+}) => void
+
+export type AddListaItemSku = ({ codigo, newSku, account }: {
+    codigo: string;
+    newSku: string;
     account:AccountType
 }) => void

@@ -1,5 +1,5 @@
 'use client'
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { Select } from "./Select";
 import { Option } from "@/types/FormFields";
 import { Filter, TableColumn, TableGroupFunction, TableItem, TableItemCheckboxProps, TableItemsHeaderCheckbox, TableItemsProps, TablePanelFiltersProps, TablePanelInformationProps, TablePanelPaginationProps, TablePanelProps, TablePanelSearchPros, TableProps } from "@/types/TableTypes";
@@ -13,8 +13,18 @@ const getFilters = ({columns,items}:{columns:TableColumn[],items:TableItem[]}):F
 
     const groupBy = ({keyColumn,items}:{keyColumn:string,items:TableItem[]})=>
     items.reduce((acc,item)=>{
-        if(!acc.includes(item[keyColumn] as React.ReactNode))
-        acc.push(item[keyColumn] as React.ReactNode)
+        const itemValues = Array.isArray(item[keyColumn])?item[keyColumn] as (string|number)[]:[item[keyColumn]]
+        
+        if(itemValues.length ===0 || (itemValues.length ===1 && itemValues[0] === ''))
+        return acc;
+        
+        itemValues.forEach(itemValue=>{
+            if(itemValue === '')
+            return acc;
+            
+            if(itemValue !== '*' && !acc.includes(itemValue as React.ReactNode))
+            acc.push(itemValue as React.ReactNode)
+        })
         return acc
     },[] as React.ReactNode[])
     
@@ -32,16 +42,29 @@ const getSearchableColumns = ({columns}:{columns:TableColumn[]})=>{
 
 const passAllFilters = ({filters,item}:{filters:NodeListOf<HTMLSelectElement>,item:TableItem})=>{
     const filtersEntries = Array.from(filters).map((filter)=>({key:filter.name,value:filter.value}))
-    return !filtersEntries.some(({key,value})=>
-        value === 'none'?false:item[key] !== value
-    )
+
+    return !filtersEntries.some(({key,value})=>{
+        if(value === 'none')
+        return false;
+        
+        const itemValues = Array.isArray(item[key])?item[key] as (string|number)[]:[item[key]];
+
+        if(itemValues.length === 0) 
+        return true;
+    
+        return !itemValues.some(itemValue=>
+            itemValue === '*' || itemValue === value
+        )
+    })
 }
 
 const passSearchFilter = ({search,searchableColumns,item}:{search:string,searchableColumns:string[],item:TableItem})=>{
-    console
-    return searchableColumns.some(keyColumn=>
-        (item[keyColumn] as string|number).toString().toUpperCase().includes(search.toUpperCase())
-    )
+    return searchableColumns.some(key=>{
+        const itemValues = Array.isArray(item[key])?item[key] as (string|number)[]:[item[key]];
+        return itemValues.some(itemValue=>
+            (itemValue as string|number).toString().toUpperCase().includes(search.toUpperCase())
+        )   
+    })
 }
 // END FUNCTIONS
 
@@ -54,16 +77,16 @@ export const Table:React.FC<TableProps> = ({columns,items,groupFunctions,customS
    
     return (
         <>
-        <TablePanel information={maskPanelInformation} columns={columns} items={items} setFilteredItems={setFilteredItems} />
+        <TablePanel filteredItems={filteredItems} information={maskPanelInformation} columns={columns} items={items} setFilteredItems={setFilteredItems} />
         <TableItems groupFunctions={groupFunctions} selectedItems={selectedItems} columns={columns} items={filteredItems} setSelectedItems={setSelectedItems}/>
         </>
     )
 }
 
-const TablePanel:React.FC<TablePanelProps> = ({columns,items,setFilteredItems,information})=>{
+const TablePanel:React.FC<TablePanelProps> = ({columns,items,filteredItems,setFilteredItems,information})=>{
     const [pageSize,setPageSize]=useState<number>(100);
     const [pages,setPages] = useState<number>(Math.ceil(items.length/pageSize))
-    const filters = getFilters({columns,items});
+    const filters = useMemo(()=>getFilters({columns,items}),[items]);
     const searchableColumns = getSearchableColumns({columns});
 
     const searchRef = useRef<HTMLInputElement>(null);
@@ -216,53 +239,54 @@ const TableItemHeaderCheckbox:React.FC<TableItemsHeaderCheckbox> = ({selectedIte
 }
 
 
-const TableItems:React.FC<TableItemsProps> = ({columns,items,setSelectedItems,selectedItems,groupFunctions})=>{
+const TableItems: React.FC<TableItemsProps> = ({ columns, items, setSelectedItems, selectedItems, groupFunctions }) => {
     const renderCheckboxes = groupFunctions !== undefined;
-    const visibleColumns = columns.filter(({visible})=>visible!== false).map(({keyColumn})=>keyColumn);
-    const isVisibleColumn = (keyColumn:string)=>visibleColumns.some(visibleKeyColumn=>keyColumn===visibleKeyColumn);
-    
-    if(items.length)
-    return (
-        <div className={`${containerStyles.container}`}>
-            <table className={`${tableStyles.tableItems}`}>
-                <thead>
-                    <tr>
-                        {renderCheckboxes && <th className={tableStyles.checkBoxCol}><TableItemHeaderCheckbox groupFunctions={groupFunctions} setSelectedItems={setSelectedItems} selectedItems={selectedItems}/></th>}
-                        {columns.map(({keyColumn,label})=>
-                            <>{isVisibleColumn(keyColumn) && <th key={keyColumn}>{label}</th>}</>
-                        )}
-                    </tr>
-                </thead>
-                <tbody>
-                {items.map((item, index) => (
-                <Fragment key={index}>
-                    <tr style={item.styles}>
-                        {
-                            renderCheckboxes && 
-                            <td className={tableStyles.checkBoxCol} key={'checkbox' + index}>
-                                <TableItemCheckbox item={item} setSelectedItems={setSelectedItems} selectedItems={selectedItems} />
-                            </td>
-                        }
-                        
-                        {Object.entries(item).map(([key, value]) => 
-                            isVisibleColumn(key) && <td key={key}>{((value === 'string' && (value as string).trim()) || value) as React.ReactNode}</td>
-                        )}
-                    </tr>
-                </Fragment>
-            ))}
+    const visibleColumns = columns.filter(({ visible }) => visible !== false).map(({ keyColumn }) => keyColumn);
+    const isVisibleColumn = (keyColumn: string) => visibleColumns.some(visibleKeyColumn => keyColumn === visibleKeyColumn);
 
-                </tbody>
-            </table>
-        </div>
+    if (items.length)
+        return (
+            <div className={`${containerStyles.container}`}>
+                <table className={`${tableStyles.tableItems}`}>
+                    <thead>
+                        <tr>
+                            {renderCheckboxes && <th className={tableStyles.checkBoxCol}><TableItemHeaderCheckbox groupFunctions={groupFunctions} setSelectedItems={setSelectedItems} selectedItems={selectedItems} /></th>}
+                            {columns.map(({ keyColumn, label }) =>
+                                <Fragment key={keyColumn}>
+                                    {isVisibleColumn(keyColumn) && <th>{label}</th>}
+                                </Fragment>
+                            )}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {items.map((item, index) => (
+                            <Fragment key={index}>
+                                <tr style={item.styles}>
+                                    {renderCheckboxes &&
+                                        <td className={tableStyles.checkBoxCol} key={'checkbox' + index}>
+                                            <TableItemCheckbox item={item} setSelectedItems={setSelectedItems} selectedItems={selectedItems} />
+                                        </td>
+                                    }
 
-    )
+                                    {Object.entries(item).map(([key, value]) =>
+                                        isVisibleColumn(key) && <td key={key + index}>{((value === 'string' && (value as string).trim()) || value) as React.ReactNode}</td>
+                                    )}
+                                </tr>
+                            </Fragment>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+
+        )
     else
-    return (
-        <div className={containerStyles.container}>
-            Sin elementos...
-        </div>
-    )
+        return (
+            <div className={containerStyles.container}>
+                Sin elementos...
+            </div>
+        )
 }
+
 
 
 

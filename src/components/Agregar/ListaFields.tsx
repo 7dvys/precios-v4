@@ -6,9 +6,13 @@ import { LabelWrapper } from "../LabelWrapper";
 import { Select } from "../Select";
 import { getSerializedVendors, getVendorsOptionList } from "@/utils/vendors";
 import { tipoOptionList } from "@/constants/tipoOptionsList";
+import { Options } from "../Options";
 
 
-export const ListaFields:React.FC<ListaFieldsProps> = ({vendors,setNameVendorAndType})=>{
+export const ListaFields:React.FC<ListaFieldsProps> = ({vendors,setNameVendorAndType,lista})=>{
+    const defaultName = lista.name;
+    const defaultVendorId = lista.vendorId === 0?'none':lista.vendorId.toString();
+    const defaultType = lista.type;
     
     const vendorsOptionsList = getVendorsOptionList({vendors});
     const serializedVendors = getSerializedVendors({vendors});
@@ -44,13 +48,17 @@ export const ListaFields:React.FC<ListaFieldsProps> = ({vendors,setNameVendorAnd
         <div className={`${containerStyles.container} flex-row flex-space-between`}>
             <div className='flex-row flex-gap-s'>
                 <LabelWrapper labelText='Titulo'>
-                    <input type="text" id='titulo' ref={nameRef}/>
+                    <input type="text" id='titulo' placeholder={defaultName} defaultValue={defaultName} ref={nameRef}/>
                 </LabelWrapper>
                 <LabelWrapper labelText='Proveedor'>
-                    <Select fieldRef={vendorIdRef} type={'select'} name='provedoor' optionList={vendorsOptionsList} placeholder='Proveedor'/>
+                    <select ref={vendorIdRef} defaultValue={defaultVendorId} name='provedoor'>
+                        <Options placeholder="Proveedor" optionList={vendorsOptionsList}/>
+                    </select>
                 </LabelWrapper>
                 <LabelWrapper labelText='Tipo'>
-                    <Select fieldRef={typeRef} type={'select'} name='tipo' optionList={tipoOptionList} placeholder='Tipo'/>
+                    <select ref={typeRef} defaultValue={defaultType} name='tipo' >
+                        <Options optionList={tipoOptionList} placeholder='Tipo'/>
+                    </select>
                 </LabelWrapper>
             </div>
             <input onClick={submitHandler} type="submit" value="confirmar" />

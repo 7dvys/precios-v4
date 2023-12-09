@@ -5,6 +5,7 @@ import { ListaItem, SerializedItemsFromLista } from "@/types/Listas";
 import { GetXlsxSheetFromSheetItemsInProductsParams } from "@/types/ListaUtilsTypes";
 import { UnifiedProducts } from "@/types/Products";
 import { decodeObservaciones } from "../decodeObservaciones";
+import { AccountType } from "@/types/Config";
 
 const serializeFormatedJsonSheet = ({overWrite,xlsxSheets,formatedJsonSheet}:{overWrite:boolean,xlsxSheets:XlsxSheet[],formatedJsonSheet:FormatedJsonSheet}):SerializedFormatedJsonSheet=>{
     const xlsxSheetsItemsCodigos = (overWrite === false && xlsxSheets.flatMap(({items})=>items.map(({codigo})=>codigo))) || []
@@ -39,8 +40,8 @@ const getMatchesBetweenProductsAndSheet = ({unifiedProducts,serializedFormatedJs
         }
         
         if(!(codigo in acc)){
-            const cbItemSkus:Record<'main'|'secondary',string[]> = {main:[],secondary:[]};
-            cbItemSkus[account as 'main'|'secondary'].push(sku); 
+            const cbItemSkus:Record<AccountType,string[]> = {main:[],secondary:[]};
+            cbItemSkus[account as AccountType].push(sku); 
 
             acc[codigo] = {
                 ...sheetItem,
@@ -51,7 +52,7 @@ const getMatchesBetweenProductsAndSheet = ({unifiedProducts,serializedFormatedJs
             }
         }
         else{
-            acc[codigo].cbItemSkus[account as 'main'|'secondary'].push(sku); 
+            acc[codigo].cbItemSkus[account as AccountType].push(sku); 
             acc[codigo].iva = product.Iva || defaultIva;
             acc[codigo].rentabilidad = product.Rentabilidad || defaultProfit;
             acc[codigo].cotizacion = inferCotizacion() || defaultExchRate;
@@ -68,7 +69,7 @@ const appendMissingItemsToMatchesBetweenProductsAndSheet = ({serializedFormatedJ
         return acc;
 
         const sheetItem = serializedFormatedJsonSheet[codigo];
-        const cbItemSkus:Record<'main'|'secondary',string[]> = {main:[],secondary:[]};
+        const cbItemSkus:Record<AccountType,string[]> = {main:[],secondary:[]};
 
         acc[codigo] = {
             ...sheetItem,

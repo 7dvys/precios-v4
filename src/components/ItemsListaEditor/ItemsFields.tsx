@@ -1,5 +1,5 @@
 import * as XLSX from 'xlsx';
-import { ItemsFieldsProps, XlsxSheet } from "@/types/AgregarTypes";
+import { ItemsFieldsProps } from "@/types/AgregarTypes";
 import { Option } from "@/types/FormFields";
 import { useRef, useState } from "react";
 import containerStyles from '@/styles/containers.module.css'
@@ -9,14 +9,12 @@ import { getXlsxWorkBookFromFileWithApi } from '@/utils/xlsx/getXlsxWorkBookFrom
 import { getXlsxSheetFromMatchesBetweenProductsAndSheetWithApi } from '@/utils/listas/getXlsxSheetFromMatchesBetweenProductsAndSheetWithApi';
 import { SheetLabels } from './SheetLabels';
 
-
-
-export const ItemsFields:React.FC<ItemsFieldsProps> = ({cotizaciones,products,xlsxSheets,xlsxSheet,setXlsxSheet,removeSheet,addSheet})=>{
+export const ItemsFields:React.FC<ItemsFieldsProps> = ({tmpXlsxSheet,addTmpXlsxSheetToLista,removeTmpXlsxSheet,setTmpXlsxSheet,removeSheet,cotizaciones,products,xlsxSheets})=>{
     const [xlsxWorkbook,setXlsxWorkbook] = useState<XLSX.WorkBook>({SheetNames:['none']} as XLSX.WorkBook);
     const [isLoading,setIsLoading] = useState<boolean>(false);
 
     const changeXlsxFileHandler = async (event:React.ChangeEvent<HTMLInputElement>)=>{
-        cancelSheet()
+        cancelSheet();
         setIsLoading(true);
         const xlsxFile = (event.target.files as FileList)[0];
         const xlsxWorkBook = await getXlsxWorkBookFromFileWithApi(xlsxFile);
@@ -63,6 +61,7 @@ export const ItemsFields:React.FC<ItemsFieldsProps> = ({cotizaciones,products,xl
     const confirmHandler = async ()=>{
         const fieldsValues = getFieldsValues()
         const {colCod,colCost,fileName,sheetName} = fieldsValues;
+
         if(!colCod || !colCost)
         return alert('Debes completar las columnas obligatorias.')    
     
@@ -78,17 +77,17 @@ export const ItemsFields:React.FC<ItemsFieldsProps> = ({cotizaciones,products,xl
             return;
         }
         setIsLoading(false);
-        setXlsxSheet({sheetName,fileName,items:xlsxSheetItems});
+        setTmpXlsxSheet({sheetName,fileName,items:xlsxSheetItems});
+    }
+
+    const addSheetHandler = ()=>{
+        addTmpXlsxSheetToLista();
+        cancelSheet();    
     }
 
     const cancelSheet = ()=>{
         clearFieldsValues();
-        setXlsxSheet({fileName:'',sheetName:'',items:[]});
-    }
-
-    const agregarHandler = ()=>{
-        addSheet({xlsxSheet});
-        cancelSheet();
+        removeTmpXlsxSheet();
     }
 
     const xlsxFileRef = useRef<HTMLInputElement>(null);
@@ -128,8 +127,8 @@ export const ItemsFields:React.FC<ItemsFieldsProps> = ({cotizaciones,products,xl
                 </div>
                 
                 <div className='flex-row flex-gap-s'>
-                    {xlsxSheet.items.length > 0 && <input onClick={agregarHandler} disabled={isLoading} type="submit" value="agregar" />}
-                    {xlsxSheet.items.length > 0 && <input disabled={isLoading} onClick={cancelSheet} type="submit" value="cancelar" />}
+                    {tmpXlsxSheet.items.length > 0 && <input onClick={addSheetHandler} disabled={isLoading} type="submit" value="agregar" />}
+                    {tmpXlsxSheet.items.length > 0 && <input disabled={isLoading} onClick={cancelSheet} type="submit" value="cancelar" />}
                     <input disabled={isLoading} onClick={confirmHandler} type="submit" value="confirmar" />
                 </div>
 

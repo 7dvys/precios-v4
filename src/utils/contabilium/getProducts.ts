@@ -1,6 +1,6 @@
 import { getAccountProducts } from "@/services/contabilium/accountProducts";
-import { Products } from "@/types";
 import { Product } from "@/types/Contabilium";
+import { Products } from "@/types/Products";
 
 type GetProductsParameters = {
     cbTokenMain:string,

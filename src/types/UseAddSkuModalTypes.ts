@@ -1,0 +1,1 @@
+export type AddIdsToTableItemIds =  (ids: number[]) => void

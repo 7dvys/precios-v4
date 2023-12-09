@@ -1,0 +1,12 @@
+.addedSkuLabel,.addSkuLabelInput{
+    display: flex;
+    flex-basis:100%;
+    margin-bottom: 0.3rem;
+    font-size: 0.9rem;
+    padding: 0.4rem;
+}
+
+.addedSkuLabel:hover,.addSkuLabelInput:hover{
+    cursor: pointer;
+    background-color: var(--grey-beige-0);
+}

@@ -3,6 +3,7 @@ import { SheetInformation, XlsxSheet } from "@/types/AgregarTypes";
 import { AccountType } from "@/types/Config";
 import { Lista, ListaItem, Tag } from "@/types/Listas";
 import { SetNameVendorAndTypeParams, UseListasProps } from "@/types/UseListasTypes";
+import { addItemSkuFromXlsxSheets } from "@/utils/listas/addItemSkuFromXlsxSheets";
 import { removeItemFromXlsxSheets } from "@/utils/listas/removeItemFromXlsxSheets";
 import { removeItemSkuFromXlsxSheets } from "@/utils/listas/removeItemSkuFromXlsxSheets";
 import { useEffect, useState } from "react";
@@ -83,6 +84,15 @@ export const useListas = ({initialLista}:UseListasProps)=>{
         })
     }
 
+    const addListaItemSku =  (params:{codigo:string,newSku:string,account:AccountType})=>{
+        setLista(currentLista=>{
+            const {xlsxSheets} = currentLista
+            const newXlsxSheets = addItemSkuFromXlsxSheets({xlsxSheets,...params})
+            const newLista:Lista = {...currentLista,xlsxSheets:newXlsxSheets};
+            return newLista;
+        })
+    }
+
     const removeListaItemSku = (params:{codigo:string,sku:string,account:AccountType})=>{
         setLista(currentLista=>{
             const {xlsxSheets} = currentLista
@@ -94,5 +104,5 @@ export const useListas = ({initialLista}:UseListasProps)=>{
 
     useEffect(setItems,[lista.xlsxSheets])
     
-    return {lista,setNameVendorAndType,addSheet,removeSheet,removeListaItem,removeListaItemSku,addTag,removeTag};
+    return {lista,setNameVendorAndType,addSheet,removeSheet,removeListaItem,removeListaItemSku,addListaItemSku,addTag,removeTag};
 }

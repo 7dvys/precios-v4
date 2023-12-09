@@ -9,10 +9,25 @@ export const dbListasUtils =async ()=>{
         const currentListas = await getListas()
         const listasNotInDb = inferedListas.filter(lista=>{
             const isInCurrentListas = Object.values(currentListas).some(({name})=>name===lista.name);
-            if(!isInCurrentListas) 
-            return lista
+            return !isInCurrentListas
         })
         await add(listasNotInDb);
+    }
+
+    const updateInferedListas = async ({inferedListas}:{ inferedListas: Lista[]})=>{
+        const currentListas = await getListas()
+        const listasInDb = inferedListas.map(lista=>{
+            const listaInCurrentListas = Object.values(currentListas).find(({name})=>name===lista.name);
+            if(listaInCurrentListas === undefined)
+            return null
+
+            return listaInCurrentListas;
+        })
+        .filter((lista):lista is (Lista & {
+            id: number;
+        })=>lista!== null) 
+
+        await update(listasInDb);
     }
 
     const updateWithoutVendorLista = async ({withoutVendorLista}:{withoutVendorLista:Lista})=>{

@@ -1,6 +1,6 @@
 import { sheetLabelStyles } from "@/styles/SheetLabelStyles";
 import { XlsxSheet } from "@/types/AgregarTypes";
-import { Dispatch, SetStateAction } from "react";
+import { Fragment } from "react";
 import { LabelWrapper } from "../LabelWrapper";
 import { RemoveSheet } from "@/types/UseListasTypes";
 
@@ -34,7 +34,12 @@ export const SheetLabels:React.FC<SheetLabelsProps> = ({xlsxSheets,removeSheet})
     
     return (
         <LabelWrapper labelText="Hojas acumuladas">
-            {xlsxSheets.map(({fileName,sheetName})=>SheetLabel({fileName,sheetName,removeSheetHandler}))}
+            <div className="flex-row flex-gap-s">
+                {xlsxSheets.map(({fileName,sheetName},index)=><Fragment key={index}>
+                    {SheetLabel({fileName,sheetName,removeSheetHandler})}
+
+                </Fragment>)}
+            </div>
         </LabelWrapper>
     )
 }

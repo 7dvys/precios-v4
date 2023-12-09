@@ -1,4 +1,5 @@
 import { AccountType } from "@/types/Config"
+import { decodeObservaciones } from "../decodeObservaciones"
 
 export const genSheetItemRow = ({fixedCoeficient,porcentualCoeficientFactor,profit,iva,cost,finalCost,cotizacion,tagsId,titulo,sheetItemCodigo,accountTypeFromSkus}:{
     titulo:string|null,
@@ -35,7 +36,7 @@ export const genSheetItemRow = ({fixedCoeficient,porcentualCoeficientFactor,prof
 
     const precioFinalLabel = (
        <div className="flex-column flex-gap-s">
-           <p><strong>{finalCost}</strong></p>
+           <p><strong>{finalCost.toFixed(2)}</strong></p>
            <div style={{fontSize:'0.8rem',justifyContent:'end'}} className="flex-row flex-gap-s">
                <p>{cost} {precioFinalTagDetail} + {profit}% + IVA {iva}%</p>
            </div>
@@ -44,7 +45,7 @@ export const genSheetItemRow = ({fixedCoeficient,porcentualCoeficientFactor,prof
     return {itemLabel,detallesLabel,precioFinalLabel}
 }
 
-export const genCbItemRow = ({sheetItemCodigo,cbItemCosto,cbItemIva,cbItemStock,cbItemRentabilidad,cbItemFinal,titulo,sku,account}:{
+export const genCbItemRow = ({sheetItemCodigo,rubro,cbItemCosto,cbItemIva,subRubro,cbItemStock,cbItemRentabilidad,cbItemFinal,cbItemObservaciones,titulo,sku,account}:{
     sheetItemCodigo:string,
     titulo:string,
     sku:string,
@@ -54,7 +55,15 @@ export const genCbItemRow = ({sheetItemCodigo,cbItemCosto,cbItemIva,cbItemStock,
     cbItemRentabilidad:number,
     cbItemIva:number,
     cbItemStock:number,
+    cbItemObservaciones:string,
+    rubro:string,
+    subRubro:string,
 })=>{
+    const observaciones = decodeObservaciones(cbItemObservaciones) 
+    const currentVendor = observaciones !== null? observaciones.proveedor[0]:null;   
+    const currentTags = observaciones !== null? observaciones.tagsId:null;   
+    const currentCotizacion = observaciones !== null?observaciones.cotizacion[0]:null;
+    
     const itemLabel = (
         <div className="flex-column">
             <p style={{fontSize:'0.95rem',fontWeight:600}}>{titulo||'sin titulo'}</p>
@@ -62,14 +71,18 @@ export const genCbItemRow = ({sheetItemCodigo,cbItemCosto,cbItemIva,cbItemStock,
                 <p><strong>codigo lista: </strong>{sheetItemCodigo}</p>
                 <p><strong>sku: </strong>{sku}</p>
                 <p><strong>cuenta: </strong>{account === 'main'?'primaria':'secundaria'}</p>
+                {currentVendor!== null && <p><strong>proveedor: </strong>{currentVendor}</p>}
+                <p><strong>rubro: </strong>{rubro}</p>
+                <p><strong>subRubro: </strong>{subRubro}</p>
+                <p><strong>stock: </strong>{cbItemStock}</p>
             </div>
         </div>
     )
 
     const detallesLabel = (
         <div style={{fontSize:'0.8rem'}} className="flex-column">
-            <p><strong>stock: </strong>{cbItemStock}</p>
-            {/* <p><strong>tags: </strong>{tagsId.join(',') || 'sin tags'}</p> */}
+            <p><strong>cotizacion: </strong>{currentCotizacion !== null?currentCotizacion:'peso'}</p>
+            <p><strong>tags: </strong>{(currentTags !== null && currentTags.length>0)?currentTags.join(','):'sin tags'}</p>
         </div>
     )
 

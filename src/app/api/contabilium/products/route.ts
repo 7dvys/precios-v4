@@ -2,7 +2,8 @@ import { NextRequest } from "next/server";
 import { getAccountProducts, updateAccountProducts } from "@/services/contabilium/accountProducts";
 import { CONTABILIUM_KEYS } from "@/constants/contabilium/cookiesKeys";
 import { Product } from "@/types/Contabilium";
-import { Products } from "@/types";
+import { Products } from "@/types/Products";
+
 
 const {cbTokenMainKey,cbTokenSecondaryKey} = CONTABILIUM_KEYS
 

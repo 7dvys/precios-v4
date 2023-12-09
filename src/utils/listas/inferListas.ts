@@ -5,6 +5,7 @@ import { AccountType } from "@/types/Config";
 import { inferListasUtils } from "./inferListasUtils";
 import { genItemsFromLista } from "./genItemsFromLista";
 import { Products } from "@/types/Products";
+import { genItemsFromInferedLista } from "./genItemsFromInferdLista";
 
 const {decoder} = simpleDataSerializer()
 
@@ -38,7 +39,7 @@ export const inferListas = ({products}:{products:Products}):Lista[] =>{
 
             const item:ListaItem = {codigo,titulo,tagsId,costo,iva,rentabilidad,cotizacion:cotizacion||'peso',cbItemSkus:{main:[],secondary:[]}};
 
-            item.cbItemSkus[account as 'main'|'secondary'].push(sku);
+            item.cbItemSkus[account as AccountType].push(sku);
         
             const lista = getLista({searchName:listaNameOrDefault});
 
@@ -77,7 +78,7 @@ export const inferListas = ({products}:{products:Products}):Lista[] =>{
                 if(!isItemOnLista)
                 addItemToLista(searchListaParams,item);
                 else
-                addCbItemSkuToItemLista(searchListaParams,item,account as 'main'|'secondary',sku);
+                addCbItemSkuToItemLista(searchListaParams,item,account as AccountType,sku);
 
                 Object.entries(inferedTags).forEach(([tagId,tag])=>{
                     addTagToLista(searchListaParams,{tag,tagId});
@@ -90,7 +91,8 @@ export const inferListas = ({products}:{products:Products}):Lista[] =>{
     })
 
     const listasWithItems = listas.map(lista=>{
-        lista.items = genItemsFromLista({lista,xlsxSheetItems:[]});
+        lista.items = genItemsFromInferedLista({lista})
+
         return lista;
     })
     

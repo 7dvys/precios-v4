@@ -4,36 +4,44 @@ import { RemoveListaItem, RemoveListaItemSku } from "@/types/UseListasTypes";
 import { Dispatch, SetStateAction } from "react";
 import { removeItemFromXlsxSheets } from "../listas/removeItemFromXlsxSheets";
 import { removeItemSkuFromXlsxSheets } from "../listas/removeItemSkuFromXlsxSheets";
+import { AddIdsToTableItemIds } from "@/types/UseAddSkuModalTypes";
 
-export const genGroupFunctions = ({itemsDictionary,removeListaItem,removeListaItemSku,setXlsxSheet}:{
+export const genGroupFunctions = ({itemsDictionary,removeItem,addTableItemIdToEditSkuList}:{
     itemsDictionary:Record<number,TableItemIdentifier>,
-    removeListaItem:RemoveListaItem,
-    removeListaItemSku:RemoveListaItemSku,
-    setXlsxSheet:Dispatch<SetStateAction<XlsxSheet>>
+    removeItem:RemoveListaItem,
+    addTableItemIdToEditSkuList:(id:number)=>void
 }):TableGroupFunction[]=>{
-
-    const removeRow = (selectedId:number[])=>{
-        selectedId.forEach(selectedId=>{
+  
+    const removeRow = (selectedIds:number[])=>{
+        const confirmRemove = selectedIds.length > 0 && confirm('Desea eliminar '+selectedIds.length+' items?')
+        if(confirmRemove === false)
+        return;
+        
+        selectedIds.forEach(selectedId=>{
             if(!(selectedId in itemsDictionary))
             return;
 
             const {codigo,sku,account} = itemsDictionary[selectedId]
+
             if(sku === null || account === null){
-                removeListaItem({codigo})
-                setXlsxSheet(currentXlsxSheet=>{
-                    const [newXlsxSheet] = removeItemFromXlsxSheets({xlsxSheets:[currentXlsxSheet],codigo});
-                    return newXlsxSheet
-                })
+                removeItem({codigo})
             }
-            else{
-                removeListaItemSku({codigo,sku,account})
-                setXlsxSheet(currentXlsxSheet=>{
-                    const [newXlsxSheet] = removeItemSkuFromXlsxSheets({xlsxSheets:[currentXlsxSheet],codigo,sku,account})
-                    return newXlsxSheet
-                })
-            }
+            // else{
+            //     removeItemSku({codigo,sku,account})
+            // }
         }) 
     }
 
-    return [{label:'eliminar',functionHandler:removeRow}]
+    const editItemSkus = (selectedIds:number[])=>{
+        selectedIds.forEach(selectedId=>{
+            if(!(selectedId in itemsDictionary))
+            return false;
+
+            const {sku,account} = itemsDictionary[selectedId]
+            if (sku === null && account === null)
+            addTableItemIdToEditSkuList(selectedId)
+        })
+    }
+
+    return [{label:'eliminar',functionHandler:removeRow},{label:'editar skus',functionHandler:editItemSkus}]
 } 

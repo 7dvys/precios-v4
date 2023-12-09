@@ -1,29 +1,35 @@
 import { Dispatch, SetStateAction } from "react";
 import { Products } from "./Products";
-import { Vendor } from "./Contabilium";
+import { CbToken, Product, RubrosWithSubRubros, RubrosWithSubRubrosPerAccount, Tokens, Vendor } from "./Contabilium";
 import { Cotizaciones, CotizacionesUtilsDependencies } from "./Cotizaciones";
 import { Lista, ListaItem, Tag, Tags } from "./Listas";
 import * as XLSX from 'xlsx';
-import { AddSheet, AddTag, RemoveListaItem, RemoveListaItemSku, RemoveSheet, RemoveTag, SetNameVendorAndType } from "./UseListasTypes";
-import { TableGroupFunction, TableItem } from "./TableTypes";
+import { AddListaItemSku, AddSheet, AddTag, RemoveListaItem, RemoveListaItemSku, RemoveSheet, RemoveTag, SetNameVendorAndType } from "./UseListasTypes";
+import { ItemsDictionary, TableGroupFunction, TableItem } from "./TableTypes";
+import { AccountType } from "./Config";
 
 
 export type AgregarPageProps = {
+    tokens:Tokens;
     cotizacionesUtilsDependencies:CotizacionesUtilsDependencies
     products:Products;
     vendors:Vendor[];
+    rubrosWithSubRubros:RubrosWithSubRubrosPerAccount;
 }
 
 export type ItemsListaEditorProps = {
+    tokens:Tokens;
     lista:Lista;
     cotizaciones:Cotizaciones;
     products:Products;
+    rubrosWithSubRubros:RubrosWithSubRubrosPerAccount;
     removeSheet:RemoveSheet;
     addSheet:AddSheet;
     addTag:AddTag;
     removeTag:RemoveTag;
     removeListaItem:RemoveListaItem;
     removeListaItemSku:RemoveListaItemSku;
+    addListaItemSku:AddListaItemSku;
     readOnly:boolean;
 }  
 
@@ -31,6 +37,7 @@ export type SheetInformation = {fileName:string,sheetName:string};
 
 export type ListaFieldsProps = {
     vendors:Vendor[];
+    lista:Lista;
     setNameVendorAndType:SetNameVendorAndType
 }
 
@@ -38,10 +45,11 @@ export type ItemsFieldsProps = {
     cotizaciones:Cotizaciones;
     products:Products;
     xlsxSheets:XlsxSheet[];
-    xlsxSheet:XlsxSheet;
-    setXlsxSheet:Dispatch<SetStateAction<XlsxSheet>>;
+    tmpXlsxSheet:XlsxSheet
+    addTmpXlsxSheetToLista:()=>void;
+    setTmpXlsxSheet:Dispatch<SetStateAction<XlsxSheet>>
+    removeTmpXlsxSheet:()=>void;
     removeSheet:RemoveSheet;
-    addSheet:AddSheet;
 }
 
 export type ItemsTableProps = {
@@ -86,6 +94,19 @@ export type FormatedJsonSheetItem = {
     cotizacion:string | null;
     rentabilidad:number | null;
     tagsId: string[]
+}
+
+export type AddSkuModalProps = {
+    productsWithNewProducts:Products;
+    listaItemsAndTmpXlsxSheetItems:ListaItem[];
+    rubrosWithSubRubros:RubrosWithSubRubrosPerAccount;
+    itemsDictionary:ItemsDictionary;
+    tableItemIdToEditSkuList: number[]
+    removeTableItemIdToEditSkuList: (id: number) => void
+    removeItemSku:RemoveListaItemSku
+    addItemSku:AddListaItemSku
+    getCbItemByCodigo:({account,codigo}:{account:AccountType,codigo:string})=>Promise<Product|{error:string}>
+    createItemSku:(params:{product:Product,account:AccountType,codigo:string})=>void;
 }
 
 

@@ -12,7 +12,7 @@ export const getAccountVendors = async ({token}:{token:string})=>{
                 'Authorization':'Bearer '+token,
             },
             next:{
-                revalidate:3600,
+                revalidate:1800,
                 tags:['accountVendors']
             } // Cacheado por una hora.
         }

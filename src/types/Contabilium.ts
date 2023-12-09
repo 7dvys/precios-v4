@@ -1,3 +1,5 @@
+import { AccountType } from "./Config";
+
 export type CbUserKey = 'userMain'|'userSecondary';
 export type CbPassKey = 'passMain'|'passSecondary';
 export type CbTokenKey = 'tokenMain'|'tokenSecondary';
@@ -87,4 +89,26 @@ export type Vendor = {
 export type UpdatesStatus = {
     id:number,
     status:boolean
+}
+
+export type SubRubro = {
+    Id:number,
+    Nombre:string
+}
+
+export type SubRubros = SubRubro[];
+
+export type RubroWithSubRubros = {
+    Id:number,
+    Nombre:string,
+    SubRubros:SubRubros
+}
+
+export type RubrosWithSubRubros = RubroWithSubRubros[];
+
+export type RubrosWithSubRubrosPerAccount = {[key in AccountType]:RubrosWithSubRubros}
+
+export type Tokens = {
+    cbTokenMain: string;
+    cbTokenSecondary: string;
 }

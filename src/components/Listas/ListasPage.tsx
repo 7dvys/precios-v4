@@ -6,24 +6,16 @@ import { TableColumn, TablePanelInformation } from "@/types/TableTypes";
 import Link from "next/link";
 import { PenIcon } from "@/components/icons/Pen";
 import { isClient } from "@/constants/isClient";
-import { dbListasUtils } from "@/utils/listas/dbListasUtils";
+import { useDbListas } from "@/hooks/useDbListas";
 
-const initListas = async ({inferedListas}:{inferedListas:Lista[]})=>{
-    const withoutVendorLista = inferedListas.find(({name})=>name === 'sin proveedor');
-
-    const {addInferedListaToDbIfNotExist,cleanDuplicatedItemsOnDb,getListas,updateWithoutVendorLista} = await dbListasUtils()
-    await addInferedListaToDbIfNotExist({inferedListas});
-    await cleanDuplicatedItemsOnDb();
-    if(withoutVendorLista)
-    await updateWithoutVendorLista({withoutVendorLista})
-    return await getListas()
-}
-
-export const ListasPage:React.FC<{inferedListas:Lista[]}> = async ({inferedListas})=>{
+export const ListasPage:React.FC<{inferedListas:Lista[]}> =({inferedListas})=>{
     if(!isClient)
     return;
 
-    const listas = await initListas({inferedListas});
+    const {listas} = useDbListas({inferedListas})
+
+    if(listas.length === 0)
+    return;
 
     const modificarLink:React.FC<{id:number}> = ({id})=><Link href={'/listas/'+id}> {PenIcon} </Link> 
     const columns:TableColumn[] = [

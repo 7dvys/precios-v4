@@ -12,8 +12,10 @@ export type TableColumn = {
 };
 
 export type TableItem = {
-  [key: string]: React.ReactNode | CSSProperties;
+  [key: string]: React.ReactNode | (string|number)[] | CSSProperties;
 } & { id: number,styles?:CSSProperties };
+
+export type ItemsDictionary = Record<number, TableItemIdentifier>;
 
 export type TableItemIdentifier = {
   codigo:string,
@@ -43,6 +45,7 @@ export type TablePanelFiltersProps = {
 
 export type TablePanelProps = TablePanelInformationProps & {
   setFilteredItems: Dispatch<SetStateAction<TableItem[]>>;
+  filteredItems:TableItem[]
   columns: TableColumn[];
   items: TableItem[];
 };

@@ -12,6 +12,7 @@
     --grey-2:rgb(29, 29, 29);
 
     --shadow-0:rgba(99, 99, 99, 0.2) 0px 2px 4px 0px;
+    --shadow-1:rgba(99, 99, 99, 0.4) 0px 2px 8px 4px;
 }
 
 *{
@@ -28,7 +29,7 @@ body{
     background:var(--white-1);
 }
 
-input:not([type="file"]),select{
+input:not([type="file"]),select,button{
     padding-left: 6px;
 }
 
@@ -47,10 +48,11 @@ input[type="checkbox"] {
   }
   
 
-input, select, span{
+input, select, span, button{
     padding: 0.5rem;
     border: 1px solid var(--grey-beige-0);
 }
+
 
 
 h2,h3,h4,h5{
@@ -78,6 +80,10 @@ h2,h3,h4,h5{
 
 .flex-wrap{
     flex-wrap: wrap;
+}
+
+.flex-grow > *{
+    flex-grow: 1;
 }
 
 .flex-column{
@@ -109,6 +115,21 @@ h2,h3,h4,h5{
     justify-content: space-between;
 }
 
+.bg-red{
+    background-color: rgb(243, 121, 121);
+}
+.bg-red:hover{
+    background-color: rgb(231, 96, 96);
+
+}
+
+.bg-green{
+    background-color: rgb(127, 236, 127);
+}
+
+.bg-green:hover{
+    background-color: rgb(138, 212, 138);
+}
 
 
 

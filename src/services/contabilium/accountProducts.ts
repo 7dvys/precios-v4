@@ -45,7 +45,7 @@ export const getAccountProducts = async ({token}:{token:string})=>{
                 'Authorization':'Bearer '+token,
             },
             next:{
-                revalidate:3600,
+                revalidate:1800,
                 tags:['accountProducts']
             }
         }
@@ -161,4 +161,31 @@ export const updateAccountProducts = async ({token,products}:{token:string,produ
     })
 
     return responsesStatus;
+}
+
+export const getProductByCodigo = async ({codigo,token}:{codigo:string,token:string}):Promise<Product|{error:string}> =>{
+    try{
+      const options:RequestInit = {
+        method: 'GET',
+        headers:{
+            'Content-Type':'application/json',
+            'Authorization':'Bearer '+token,
+        },
+        cache:'no-store'
+      };
+      
+      const response = await fetch("https://rest.contabilium.com/api/conceptos/getByCodigo?codigo="+codigo, options)
+
+      if(!response.ok)
+      return {error:response.statusText};
+      
+      const productJson:Product|{error:string} = await response.json();
+
+      if('error' in productJson)
+      return {error:productJson.error}
+
+      return productJson;
+    }catch{
+      return {error:'error desconocido'};
+    }
 }

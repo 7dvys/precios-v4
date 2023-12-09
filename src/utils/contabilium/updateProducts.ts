@@ -1,15 +1,12 @@
 import { updateAccountProducts } from "@/services/contabilium/accountProducts";
-import { Products } from "@/types";
+import { Products } from "@/types/Products";
+import { Tokens } from "@/types/Contabilium";
 // import { revalidateTag } from "next/cache";
 // import { cookies } from "next/headers";
 // import { inspect } from "util";
 
-type cbTokens = {
-    cbTokenMain:string,
-    cbTokenSecondary:string
-}
 
-export const updateProducts = async ({cbTokenMain,cbTokenSecondary}:cbTokens,{main,secondary}:Products)=>{
+export const updateProducts = async ({cbTokenMain,cbTokenSecondary}:Tokens,{main,secondary}:Products)=>{
     const mainUpdatesStatus = await updateAccountProducts({products:main,token:cbTokenMain});
     const secondaryUpdatesStatus = await updateAccountProducts({products:secondary,token:cbTokenSecondary});
     return {main:mainUpdatesStatus,secondary:secondaryUpdatesStatus};

@@ -1,4 +1,5 @@
 import { XlsxSheet } from "./AgregarTypes";
+import { AccountType } from "./Config";
 
 export type ListaItem = {
     codigo:string;
@@ -27,7 +28,7 @@ export type Lista = {
     xlsxSheets:XlsxSheet[];
     inferedItems:ListaItem[];
     items:ListaItem[];
-    type:'main'|'secondary'|'both';
+    type:AccountType|'both';
 }
 
 // export type Listas = Record<string,Lista>;

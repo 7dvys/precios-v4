@@ -43,7 +43,7 @@ export const inferListasUtils = ({listas}:{listas:Lista[]})=>{
         })
     } 
 
-    const addCbItemSkuToItemLista = (listaSearchCriteria:ListaSearchCriteria,item:ListaItem,account:'main'|'secondary',sku:string)=>{
+    const addCbItemSkuToItemLista = (listaSearchCriteria:ListaSearchCriteria,item:ListaItem,account:AccountType,sku:string)=>{
         modifyLista(listaSearchCriteria,(lista)=>{
             lista.inferedItems.forEach((listaItem)=>{
                 if(listaItem.codigo === item.codigo)
