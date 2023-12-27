@@ -11,8 +11,10 @@ import { fixProducts } from "@/utils/listas/fixProducts"
 import { useEffect, useState } from "react"
 import containerStyles from '@/styles/containers.module.css'
 import { serializeProducts } from "@/utils/serializeProducts"
+import { usePathname } from "next/navigation"
 
 export const ContabiliumProvider = ({children,tokens}:{children:React.ReactNode,tokens:Tokens})=>{
+    const pathname = usePathname()
     const [vendors,setVendors] = useState<Vendor[]>([]);
     const [fixedProducts,setFixedProducts] = useState<Products>({main:[],secondary:[]});
     const [rubrosWithSubRubrosPerAccount,setRubrosWithSubRubrosPerAccount] = useState<RubrosWithSubRubrosPerAccount>({main:[],secondary:[]});
@@ -39,6 +41,9 @@ export const ContabiliumProvider = ({children,tokens}:{children:React.ReactNode,
 
         setFixedProducts({main:newMainContextProducts,secondary:newSecondaryContextProducts});
     }
+
+    if(pathname === '/opciones/contabilium')
+    return (<>{children}</>)
 
     if(vendors.length === 0 || fixedProducts.main.length === 0 || fixedProducts.secondary.length === 0 || rubrosWithSubRubrosPerAccount.main.length === 0 || rubrosWithSubRubrosPerAccount.secondary.length === 0)
     return (
