@@ -1,6 +1,7 @@
 import { Option } from "@/types/FormFields";
 import { TableGroupFunction, TableItemsHeaderCheckbox } from "@/types/TableTypes";
 import { Options } from "../Options";
+import styles from '@/styles/tableItemHeaderAction.module.css'
 
 export const TableItemHeaderAction:React.FC<TableItemsHeaderCheckbox> = ({filteredItems,selectedItems,setSelectedItems,groupFunctions})=>{
     if(!groupFunctions)
@@ -29,7 +30,7 @@ export const TableItemHeaderAction:React.FC<TableItemsHeaderCheckbox> = ({filter
         })
     }
 
-    const customFunctionsOptionList:Option[] = groupFunctions.map(({label})=>({value:label}))
+    const customFunctionsOptionList:Option[] = groupFunctions.map(({label})=>({value:label,title:label}))
     const defaultFunctionsOptionList:Option[] = [
         {value:'clearSelections',title:'Limpiar'},
         {value:'selectAllPageItems',title:'Seleccionar pagina'},
@@ -38,27 +39,41 @@ export const TableItemHeaderAction:React.FC<TableItemsHeaderCheckbox> = ({filter
     const groupFunctionsOptionList = [...defaultFunctionsOptionList,...customFunctionsOptionList];
 
     
-    const groupFunctionHandler = (event:React.MouseEvent<HTMLSelectElement>)=>{
-        const {localName} = (event.target as HTMLSelectElement|HTMLOptionElement);
-        if(localName !== 'select'){
-            const functionName = (event.target as HTMLOptionElement).value
+    const groupFunctionHandler = (event:React.ChangeEvent<HTMLSelectElement>)=>{
+    // const groupFunctionHandler = (functionName:string)=>{
+    
+        const functionName = (event.target as HTMLSelectElement).value
+        // if(functionName === 'none')
+        // return;
 
-            if(functionName === 'none')
-            return;
+        if(functionName === 'clearSelections')
+         clearSelections();
 
-            if(functionName === 'clearSelections')
-            return clearSelections()
+        if(functionName === 'selectAllPageItems')
+         selectAllPageItems();
+        
+        const groupFunction = groupFunctions.find(({label})=>label===functionName);
+        if(groupFunction !== undefined && 'functionHandler' in groupFunction)
+        groupFunction.functionHandler(selectedItems);
 
-            if(functionName === 'selectAllPageItems')
-            return selectAllPageItems()
-         
-            const groupFunction = (groupFunctions.find(({label})=>label===functionName) as TableGroupFunction).functionHandler;
-            groupFunction(selectedItems);
+        (event.target as HTMLSelectElement).value = 'none';
 
             // return clearSelections()
-        }
 
     }
     
-    return <select onClick={groupFunctionHandler} onChange={()=>{}} value={'none'} name="groupFunction"><Options optionList={groupFunctionsOptionList} placeholder="Accion"/></select>
+    // return (
+    //     <div className={styles.contenedor}>
+    //         <input type="button" className={styles.accion} value="accion" />
+    //         <div className={`flex-column ${styles.acciones}`}>
+    //             {groupFunctionsOptionList.map(({value,title},index)=>
+    //                 <div className={`button` } key={index} onClick={()=>{groupFunctionHandler(value as string)}}>{title}</div>
+    //                 )}
+    //         </div>
+    //         {/* <input type="button" className={styles.acciones} value="acciones" /> */}
+
+    //         {/* <div className={styles.acciones}>acciones</div> */}
+    //     </div>
+    // )
+    return <select onChange={groupFunctionHandler} name="groupFunction"><Options optionList={groupFunctionsOptionList} placeholder="Accion"/></select>
 }

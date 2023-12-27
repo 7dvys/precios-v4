@@ -1,0 +1,23 @@
+.contenedor {
+    position: relative;
+}
+
+.accion,
+.acciones {
+    /* margin: 5px; */
+    /* border: 1px solid #ccc; */
+    cursor: pointer;
+}
+
+.acciones {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color:var(--grey-beige-1);
+    font-weight: 100;
+}
+
+.accion:hover + .acciones, .acciones:hover{
+    display: block;
+}
