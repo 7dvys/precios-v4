@@ -12,22 +12,18 @@ export type CbToken = {
     error?:string
 }
 
-export type ObservacionesWithTags = {
-    ultActualizacion: string;
-    cotizacion: string;
-    proveedor: string;
-    cotizacionPrecio: number;
-    lista:string;
-    tagsId:string[];
-} & {
+export type ObservacionesWithTags = ObservacionesWithoutTags & {
     [tag:string]:[porcentual:number,fijo:number]
 }
 
 export type ObservacionesWithoutTags = {
     ultActualizacion: string;
     cotizacion: string;
-    proveedor: string;
     cotizacionPrecio: number;
+    costoCotizacion:number;
+    costoLista:number;
+    enlazadoMl:'si'|'sin revisar';
+    proveedor: string;
     lista:string;
     tagsId:string[];
 }
@@ -109,6 +105,6 @@ export type RubrosWithSubRubros = RubroWithSubRubros[];
 export type RubrosWithSubRubrosPerAccount = {[key in AccountType]:RubrosWithSubRubros}
 
 export type Tokens = {
-    cbTokenMain: string;
-    cbTokenSecondary: string;
+    main: string;
+    secondary: string;
 }

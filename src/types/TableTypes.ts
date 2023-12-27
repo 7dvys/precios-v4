@@ -50,7 +50,7 @@ export type TablePanelProps = TablePanelInformationProps & {
   items: TableItem[];
 };
 
-export type TablePanelSearchPros = {
+export type TablePanelSearchProps = {
   searchRef: RefObject<HTMLInputElement>;
 };
 
@@ -68,14 +68,22 @@ export type TablePanelInformationProps = {
 // Tipos relacionados con TableItems
 export type TableItemsProps = SelectedItems & {
   columns: TableColumn[];
-  items: TableItem[];
+  filteredItems: TableItem[];
   groupFunctions?: TableGroupFunction[];
 };
  
-export type TableItemsHeaderCheckbox = SelectedItems & {groupFunctions?: TableGroupFunction[]}
+export type TableItemsHeaderCheckbox = SelectedItems & {
+  groupFunctions?: TableGroupFunction[]
+  filteredItems:TableItem[];
+}
 
-export type TableItemCheckboxProps = SelectedItems & {
+export type TableItemCheckboxProps = {
   item: TableItem;
+  selectItem:({ item }: {
+    item: TableItem;
+  }) => void;
+  isChecked:boolean;
+
 };
 
 export type SelectedItems = {
@@ -88,4 +96,5 @@ export type TableProps = {
   groupFunctions?: TableGroupFunction[];
   customStyles?: string;
   panelInformation?: TablePanelInformation;
-} & Omit<TableItemsProps, "setSelectedItems" | "selectedItems">;
+  items:TableItem[];
+} & Omit<TableItemsProps, "setSelectedItems" | "selectedItems" | 'filteredItems'>;

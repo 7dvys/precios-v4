@@ -30,9 +30,9 @@ export const PUT = async (request:NextRequest)=>{
     if(cookiesStore.has(cbTokenMainKey) && cookiesStore.has(cbTokenSecondaryKey)){
         const {main,secondary}:Products = await request.json()
         const mainCbToken = cookiesStore.get(cbTokenMainKey)?.value as string;
-        const mainUpdatesStatus = await updateAccountProducts({products:main,token:mainCbToken});
+        const mainUpdatesStatus = await updateAccountProducts({accountProducts:main,token:mainCbToken});
         const secondaryCbToken = cookiesStore.get(cbTokenSecondaryKey)?.value as string;
-        const secondaryUpdatesStatus = await updateAccountProducts({products:secondary,token:secondaryCbToken});
+        const secondaryUpdatesStatus = await updateAccountProducts({accountProducts:secondary,token:secondaryCbToken});
 
         return Response.json({main:mainUpdatesStatus,secondary:secondaryUpdatesStatus});
     }

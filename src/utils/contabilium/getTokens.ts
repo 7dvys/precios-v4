@@ -5,11 +5,11 @@ import { cookies } from "next/headers"
 const {cbTokenMainKey,cbTokenSecondaryKey} = CONTABILIUM_KEYS
 
 export const getTokensFromCookies = ():Tokens=>{
-    let cbTokenMain = '',cbTokenSecondary = '';
+    let main = '',secondary = '';
     const cookiesStore = cookies();
     if(cookiesStore.has(cbTokenMainKey) && cookiesStore.has(cbTokenSecondaryKey)){
-        cbTokenMain = cookiesStore.get(cbTokenMainKey)?.value as string;
-        cbTokenSecondary = cookiesStore.get(cbTokenSecondaryKey)?.value as string;
+        main = cookiesStore.get(cbTokenMainKey)?.value as string;
+        secondary = cookiesStore.get(cbTokenSecondaryKey)?.value as string;
     }
-    return {cbTokenMain,cbTokenSecondary};
+    return {main,secondary};
 }

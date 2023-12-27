@@ -12,6 +12,10 @@ export const useTableItemIdToEditSkuList = ()=>{
         })
     }
 
+    const clearTableItemIdToEditSkuList = ()=>{
+        setTableItemIdToEditSkuList([]);
+    }
+
     const removeTableItemIdToEditSkuList = (id:number)=>{
         setTableItemIdToEditSkuList(currentTableItemIdToEditSkuList=>{
             const newTableItemIdToEditSkuList = currentTableItemIdToEditSkuList.filter(currentId=>currentId !== id);
@@ -19,5 +23,5 @@ export const useTableItemIdToEditSkuList = ()=>{
         })
     }
 
-    return {tableItemIdToEditSkuList,addTableItemIdToEditSkuList,removeTableItemIdToEditSkuList};
+    return {tableItemIdToEditSkuList,clearTableItemIdToEditSkuList,addTableItemIdToEditSkuList,removeTableItemIdToEditSkuList};
 }

@@ -9,7 +9,7 @@ import { getXlsxWorkBookFromFileWithApi } from '@/utils/xlsx/getXlsxWorkBookFrom
 import { getXlsxSheetFromMatchesBetweenProductsAndSheetWithApi } from '@/utils/listas/getXlsxSheetFromMatchesBetweenProductsAndSheetWithApi';
 import { SheetLabels } from './SheetLabels';
 
-export const ItemsFields:React.FC<ItemsFieldsProps> = ({tmpXlsxSheet,addTmpXlsxSheetToLista,removeTmpXlsxSheet,setTmpXlsxSheet,removeSheet,cotizaciones,products,xlsxSheets})=>{
+export const ItemsFields:React.FC<ItemsFieldsProps> = ({tmpXlsxSheet,finishListaFunc,addTmpXlsxSheetToLista,removeTmpXlsxSheet,setTmpXlsxSheet,removeSheet,cotizaciones,products,xlsxSheets})=>{
     const [xlsxWorkbook,setXlsxWorkbook] = useState<XLSX.WorkBook>({SheetNames:['none']} as XLSX.WorkBook);
     const [isLoading,setIsLoading] = useState<boolean>(false);
 
@@ -38,8 +38,9 @@ export const ItemsFields:React.FC<ItemsFieldsProps> = ({tmpXlsxSheet,addTmpXlsxS
         const defaultExchRate = (defaultCotizacionRef.current as HTMLSelectElement).value 
 
         const overWrite = (overWriteRef.current as HTMLSelectElement).value === 'true';
+        const addNewItems = (addNewItemsRef.current as HTMLSelectElement).value === 'true';
 
-        return {fileName,sheetName,colCod,colCost,colTitle,colIva,colProfit,colExchRate,colTags,defaultIva,defaultProfit,defaultExchRate,overWrite}
+        return {fileName,addNewItems,sheetName,colCod,colCost,colTitle,colIva,colProfit,colExchRate,colTags,defaultIva,defaultProfit,defaultExchRate,overWrite}
     }
 
     const clearFieldsValues = ()=>{
@@ -56,14 +57,18 @@ export const ItemsFields:React.FC<ItemsFieldsProps> = ({tmpXlsxSheet,addTmpXlsxS
         (defaultCotizacionRef.current as HTMLSelectElement).value = 'none'; 
 
         (overWriteRef.current as HTMLSelectElement).value = 'true';
+        (addNewItemsRef.current as HTMLSelectElement).value = 'true';
     }
 
     const confirmHandler = async ()=>{
         const fieldsValues = getFieldsValues()
-        const {colCod,colCost,fileName,sheetName} = fieldsValues;
+        const {colCod,colCost,fileName,sheetName,overWrite,addNewItems} = fieldsValues;
 
         if(!colCod || !colCost)
         return alert('Debes completar las columnas obligatorias.')    
+
+        if(!overWrite && !addNewItems)
+        return removeTmpXlsxSheet();
     
         setIsLoading(true);
         const xlsxSheetItems = await getXlsxSheetFromMatchesBetweenProductsAndSheetWithApi({xlsxSheets,xlsxWorkbook,products,...fieldsValues,defaultExchRate:fieldsValues.defaultExchRate==='none'?'peso':fieldsValues.defaultExchRate})
@@ -90,6 +95,14 @@ export const ItemsFields:React.FC<ItemsFieldsProps> = ({tmpXlsxSheet,addTmpXlsxS
         removeTmpXlsxSheet();
     }
 
+    const saveListaHandler = ()=>{
+        if(tmpXlsxSheet.items.length > 0)
+        return alert('No puedes guardar la lista si tienes una hoja en progreso.');
+
+        if(confirm('Estas seguro que quieres guardar esta lista?'))
+        finishListaFunc();
+    }
+
     const xlsxFileRef = useRef<HTMLInputElement>(null);
     const xlsxSheetRef = useRef<HTMLSelectElement>(null);
     const colCodRef = useRef<HTMLInputElement>(null);
@@ -103,6 +116,7 @@ export const ItemsFields:React.FC<ItemsFieldsProps> = ({tmpXlsxSheet,addTmpXlsxS
     const defaultRentabilidadRef = useRef<HTMLInputElement>(null);
     const defaultCotizacionRef = useRef<HTMLSelectElement>(null);
     const overWriteRef = useRef<HTMLSelectElement>(null);
+    const addNewItemsRef = useRef<HTMLSelectElement>(null);
 
     const sheetNamesOptionList:Option[] = xlsxWorkbook.SheetNames.map(sheetName=>({value:sheetName}))
     const cotizacionesOptionList:Option[] = Object.entries(cotizaciones).map(([name,exchangeRate]:[string,number])=>({value:name,title:`${name} - ${exchangeRate}`}))
@@ -123,6 +137,12 @@ export const ItemsFields:React.FC<ItemsFieldsProps> = ({tmpXlsxSheet,addTmpXlsxS
                             <option value="false">no</option>
                         </select>
                     </LabelWrapper>
+                    <LabelWrapper labelText='Agregar Items'>
+                        <select ref={addNewItemsRef} disabled={isLoading} name="addNewItems">
+                            <option value="true">si</option>
+                            <option value="false">no</option>
+                        </select>
+                    </LabelWrapper>
                     {xlsxSheets.length>0 && <SheetLabels xlsxSheets={xlsxSheets} removeSheet={removeSheet}/>}
                 </div>
                 
@@ -130,6 +150,7 @@ export const ItemsFields:React.FC<ItemsFieldsProps> = ({tmpXlsxSheet,addTmpXlsxS
                     {tmpXlsxSheet.items.length > 0 && <input onClick={addSheetHandler} disabled={isLoading} type="submit" value="agregar" />}
                     {tmpXlsxSheet.items.length > 0 && <input disabled={isLoading} onClick={cancelSheet} type="submit" value="cancelar" />}
                     <input disabled={isLoading} onClick={confirmHandler} type="submit" value="confirmar" />
+                    <input disabled={isLoading} onClick={saveListaHandler} type="submit" value="guardar lista" />
                 </div>
 
             </div>

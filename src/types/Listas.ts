@@ -12,6 +12,8 @@ export type ListaItem = {
     cbItemSkus:{main:string[],secondary:string[]};
 }
 
+export type ListaItemOptionalValues = {[key in keyof ListaItem]?:ListaItem[key]}
+
 export type Tag = {
     descripcion:string;
     fijo:number;
@@ -30,6 +32,7 @@ export type Lista = {
     items:ListaItem[];
     type:AccountType|'both';
 }
+
 
 // export type Listas = Record<string,Lista>;
 export type SerializedItemsFromLista = Record<string,ListaItem>;

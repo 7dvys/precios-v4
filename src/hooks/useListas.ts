@@ -1,19 +1,58 @@
 import { defaultLista } from "@/constants/defaultLista";
 import { SheetInformation, XlsxSheet } from "@/types/AgregarTypes";
 import { AccountType } from "@/types/Config";
-import { Lista, ListaItem, Tag } from "@/types/Listas";
+import { Lista, ListaItem, ListaItemOptionalValues, Tag } from "@/types/Listas";
 import { SetNameVendorAndTypeParams, UseListasProps } from "@/types/UseListasTypes";
 import { addItemSkuFromXlsxSheets } from "@/utils/listas/addItemSkuFromXlsxSheets";
 import { removeItemFromXlsxSheets } from "@/utils/listas/removeItemFromXlsxSheets";
 import { removeItemSkuFromXlsxSheets } from "@/utils/listas/removeItemSkuFromXlsxSheets";
 import { useEffect, useState } from "react";
+import { dbListasUtils } from "@/utils/listas/dbListasUtils";
+import { changeXlsxSheetsCosts } from "@/utils/listas/changeXlsxSheetsCosts";
+import { isClient } from "@/constants/isClient";
+import { changeItemCostoFromXlsxSheets } from "@/utils/listas/changeItemFromXlsxSheets";
+import { updateItemFromXlsxSheets } from "@/utils/listas/updateItemFromXlsxSheets";
 
 export const useListas = ({initialLista}:UseListasProps)=>{
 
-    const [lista,setLista] = useState<Lista>(initialLista||defaultLista);
+
+    const [lista,setLista] = useState<Lista>(defaultLista);
+
+    useEffect(()=>{
+        if(initialLista !== undefined)
+        setLista(initialLista);
+    },[initialLista])
+
+    const changeListaAllCosts = ({factor}:{factor:number})=>{
+        setLista(currentLista=>{
+            const {xlsxSheets} = currentLista
+            const newXlsxSheets = changeXlsxSheetsCosts({xlsxSheets,factor})
+            const newLista:Lista = {...currentLista,xlsxSheets:newXlsxSheets};
+            return newLista;
+        })
+    }
+
+    const changeListaItemCosto = ({newCost,codigo}:{newCost:number,codigo:string})=>{
+        setLista(currentLista=>{
+            const {xlsxSheets} = currentLista
+            const newXlsxSheets = changeItemCostoFromXlsxSheets({xlsxSheets,newCost,codigo});
+            const newLista:Lista = {...currentLista,xlsxSheets:newXlsxSheets};
+            return newLista;
+        })
+    }
+
+    // const changeListaItemCotizacion = ({})
 
     const setNameVendorAndType = ({name,vendor,vendorId,type}:SetNameVendorAndTypeParams)=>{
         setLista(currentLista=>({...currentLista,name,vendor,vendorId,type}))
+    }
+
+    const saveLista = async ()=>{
+        if(!isClient)
+        return;
+        
+        const {saveListas} = await dbListasUtils()
+        saveListas({listas:[lista]});
     }
 
     const addSheet = ({xlsxSheet}:{xlsxSheet:XlsxSheet})=>{
@@ -33,11 +72,11 @@ export const useListas = ({initialLista}:UseListasProps)=>{
     }
 
     const setItems = ()=>{
-        const {xlsxSheets,inferedItems} = lista;
+        const {xlsxSheets} = lista;
     
         const xlsxListaItemsFromXlsxSheets = xlsxSheets.map(({items})=>(items));
     
-        const items = [inferedItems,...xlsxListaItemsFromXlsxSheets].reduce((acc,listaItems)=>{
+        const items = xlsxListaItemsFromXlsxSheets.reduce((acc,listaItems)=>{
             const listaItemsCodigos = listaItems.map(({codigo})=>codigo)
             const accWithoutCurrentListaItemsCodigos = acc.filter((accItem)=>(
                 !listaItemsCodigos.some(codigo=>codigo===accItem.codigo))
@@ -84,6 +123,15 @@ export const useListas = ({initialLista}:UseListasProps)=>{
         })
     }
 
+    const updateListaItem = ({codigo,newItemValues}:{codigo:string,newItemValues:ListaItemOptionalValues})=>{
+        setLista(currentLista=>{
+            const {xlsxSheets} = currentLista
+            const newXlsxSheets = updateItemFromXlsxSheets({xlsxSheets,codigo,newItemValues});
+            return {...currentLista,xlsxSheets:newXlsxSheets};
+        })
+    }
+
+
     const addListaItemSku =  (params:{codigo:string,newSku:string,account:AccountType})=>{
         setLista(currentLista=>{
             const {xlsxSheets} = currentLista
@@ -102,7 +150,8 @@ export const useListas = ({initialLista}:UseListasProps)=>{
         })
     }
 
+
     useEffect(setItems,[lista.xlsxSheets])
     
-    return {lista,setNameVendorAndType,addSheet,removeSheet,removeListaItem,removeListaItemSku,addListaItemSku,addTag,removeTag};
+    return {lista,setNameVendorAndType,addSheet,saveLista,updateListaItem,changeListaItemCosto,changeListaAllCosts,removeSheet,removeListaItem,removeListaItemSku,addListaItemSku,addTag,removeTag};
 }

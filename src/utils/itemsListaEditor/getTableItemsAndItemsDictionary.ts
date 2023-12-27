@@ -6,24 +6,7 @@ import { getAccountTypeFromSkus } from "../getAccountTypeFromSkus";
 import { Product, RubrosWithSubRubrosPerAccount } from "@/types/Contabilium";
 import { genCbItemRow, genSheetItemRow } from "./genTableRowLabels";
 import { AccountType } from "@/types/Config";
-
-const tagsCoeficient = ({tags,itemTagsId}:{tags:Tags,itemTagsId:string[]})=>{
-    let fixedCoeficient = 0;
-    let porcentualCoeficientFactor = 1;
-
-    if(!Object.keys(tags).length || !itemTagsId.length)
-    return {fixedCoeficient,porcentualCoeficientFactor};
-    
-    itemTagsId.forEach(tagId=>{
-        if(tagId in tags){
-            const {fijo,porcentual} = tags[tagId];
-            const porcentualFactor = (porcentual/100)+1;
-            fixedCoeficient+=fijo;
-            porcentualCoeficientFactor*=porcentualFactor;
-        }
-    })
-    return {fixedCoeficient,porcentualCoeficientFactor};
-}
+import { getTagsCoeficients } from "./getTagsCoeficients";
 
 export const getTableItemsAndItemsDictionary = ({products,items,tags,rubrosWithSubRubros}:{products:Products,items:ListaItem[],tags:Tags,rubrosWithSubRubros:RubrosWithSubRubrosPerAccount})=>{
     const serializedProducts = serializeProducts({products});
@@ -38,7 +21,7 @@ export const getTableItemsAndItemsDictionary = ({products,items,tags,rubrosWithS
         
         const accountTypeFromSkus = getAccountTypeFromSkus(cbItemSkus);
         
-        const {fixedCoeficient,porcentualCoeficientFactor} = tagsCoeficient({tags,itemTagsId:tagsId});
+        const {fixedCoeficient,porcentualCoeficientFactor} = getTagsCoeficients({tags,itemTagsId:tagsId});
         const rentabilidadFactor = (rentabilidad/100)+1 || 1;
         const ivaFactor = (iva/100)+1 || 1;
         const finalCost = (costo+fixedCoeficient)*porcentualCoeficientFactor*rentabilidadFactor*ivaFactor;
@@ -83,8 +66,8 @@ export const getTableItemsAndItemsDictionary = ({products,items,tags,rubrosWithS
                     titulo,
                     sku,
                     account:account as AccountType,
-                    cbItemFinal: final,
-                    cbItemCosto: costo,
+                    cbItemFinal: Number(final.toFixed(2)),
+                    cbItemCosto: Number(costo.toFixed(2)),
                     cbItemRentabilidad: rentabilidad,
                     cbItemIva: iva,
                     cbItemStock: stock,
@@ -124,7 +107,7 @@ export const getTableItemsAndItemsDictionary = ({products,items,tags,rubrosWithS
             cotizacion,
             tagsId,
             finalCost,
-            cost: costo,
+            cost: Number(costo.toFixed(2)),
             profit: rentabilidad,
             iva,
             fixedCoeficient,

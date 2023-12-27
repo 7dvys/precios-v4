@@ -33,6 +33,11 @@ export const formatJsonSheet = ({jsonSheet,colCod,colTitle,colCost,colIva,colPro
 
         if(!isNaN(Number(optionalValue(formatedColProfit))))
         rentabilidad = Number(optionalValue(formatedColProfit));
+
+        const cotizacion = optionalValue(formatedColExchRate) as string|null
+
+        // if(cotizacion !== 'interbike')
+        // console.log(element[colExchRate])
         
         return {
             codigo,
@@ -40,7 +45,7 @@ export const formatJsonSheet = ({jsonSheet,colCod,colTitle,colCost,colIva,colPro
             costo,
             iva,
             rentabilidad,
-            cotizacion:optionalValue(formatedColExchRate) as string|null,
+            cotizacion,
             tagsId:optionalValue(formatedColTags) !== null?(optionalValue(formatedColTags) as string).split(',').filter(tagId=>tagId):[]
         }
     })

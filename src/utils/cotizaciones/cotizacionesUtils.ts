@@ -1,19 +1,22 @@
 import { isClient } from "@/constants/isClient";
 import { LOCALSTORAGE_KEYS } from "@/constants/localStorage"
-import { Cotizaciones, CotizacionesUtilsDependencies } from "@/types/Cotizaciones";
+import { Cotizaciones } from "@/types/Cotizaciones";
+import { getCotizacionesUtilsDependencies } from "./getCotizacionesUtilsDependencies";
+import { Products } from "@/types/Products";
 
-export const cotizacionesUtils = ({latestCotizaciones,dolaresCotizaciones}:CotizacionesUtilsDependencies)=>{
-
+export const cotizacionesUtils = async ({products}:{products:Products})=>{
+    const {latestCotizaciones,dolaresCotizaciones} = await getCotizacionesUtilsDependencies({products})
+    
     const getCotizaciones = (): Cotizaciones => {
         const cotizacionesJson = isClient?localStorage.getItem(LOCALSTORAGE_KEYS.cotizaciones)??'{}':'{}';
         return JSON.parse(cotizacionesJson);
     }
 
     const updateCotizacion = ({title,value}:{title:string,value:number})=>{
-        const cotizacion = getCotizaciones()
+        const cotizaciones = getCotizaciones()
         if(value>0){
-            cotizacion[title] = value;
-            isClient && localStorage.setItem(LOCALSTORAGE_KEYS.cotizaciones,JSON.stringify(cotizacion))
+            cotizaciones[title] = value;
+            isClient && localStorage.setItem(LOCALSTORAGE_KEYS.cotizaciones,JSON.stringify(cotizaciones))
         }
         return getCotizaciones();
     }
@@ -36,7 +39,7 @@ export const cotizacionesUtils = ({latestCotizaciones,dolaresCotizaciones}:Cotiz
 
         const initialAndLatestCotizations = {...defaultCotizaciones,...latestCotizaciones}
         Object.entries(initialAndLatestCotizations).forEach(([title,value])=>{
-            if(title in defaultCotizaciones || !(title in currentCotizaciones))
+            // if(title in defaultCotizaciones || !(title in currentCotizaciones))
             updateCotizacion({title,value});
         });
     }

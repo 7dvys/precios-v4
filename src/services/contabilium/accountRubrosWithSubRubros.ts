@@ -9,10 +9,11 @@ export const getAccountRubrosWithSubRubros = async ({token}:{token:string}):Prom
             'Content-Type':'application/json',
             'Authorization':'Bearer '+token,
         },
-        next:{
-          revalidate:1800,
-          tags:['accountRubros']
-        }
+        cache:'no-store'
+        // next:{
+        //   revalidate:1800,
+        //   tags:['accountRubros']
+        // }
       };
       
       const response = await fetch("https://rest.contabilium.com/api/conceptos/rubros?includeChilds=true", options)

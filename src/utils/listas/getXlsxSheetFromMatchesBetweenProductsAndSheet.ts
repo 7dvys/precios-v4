@@ -7,14 +7,29 @@ import { UnifiedProducts } from "@/types/Products";
 import { decodeObservaciones } from "../decodeObservaciones";
 import { AccountType } from "@/types/Config";
 
-const serializeFormatedJsonSheet = ({overWrite,xlsxSheets,formatedJsonSheet}:{overWrite:boolean,xlsxSheets:XlsxSheet[],formatedJsonSheet:FormatedJsonSheet}):SerializedFormatedJsonSheet=>{
-    const xlsxSheetsItemsCodigos = (overWrite === false && xlsxSheets.flatMap(({items})=>items.map(({codigo})=>codigo))) || []
+const serializeFormatedJsonSheet = ({overWrite,xlsxSheets,formatedJsonSheet,addNewItems}:{addNewItems:boolean,overWrite:boolean,xlsxSheets:XlsxSheet[],formatedJsonSheet:FormatedJsonSheet}):SerializedFormatedJsonSheet=>{
+    
+    const xlsxSheetsItemsCodigos = xlsxSheets.reduce((uniqueCodigos,xlsxSheet)=>{
+        xlsxSheet.items.forEach(({codigo})=>{
+            const codigoInUniqueCodigos = uniqueCodigos.some(uniqueCodigo=>uniqueCodigo===codigo);
+            if(!codigoInUniqueCodigos)
+            uniqueCodigos.push(codigo);
+        })
+        
+        return uniqueCodigos;
+    },[] as string[])
+    
     
     const serializedFormatedJsonSheet = formatedJsonSheet.reduce((acc,item)=>{
-        const isInXlsxSheetsItemsCodigos = xlsxSheetsItemsCodigos.length > 0 && xlsxSheetsItemsCodigos.some(codigo=>codigo === item.codigo);
-        if(!isInXlsxSheetsItemsCodigos)
+        const isInXlsxSheetsItemsCodigos = xlsxSheetsItemsCodigos.some(codigo=>codigo === item.codigo);
+
+        const addItemCondition = overWrite && (addNewItems || (!addNewItems && isInXlsxSheetsItemsCodigos)) || (addNewItems && !overWrite && !isInXlsxSheetsItemsCodigos);
+
+        if(addItemCondition)
         acc[item.codigo]=item;
+
         return acc;
+
     },{} as Record<string,FormatedJsonSheetItem>)
 
     return serializedFormatedJsonSheet;
@@ -53,11 +68,8 @@ const getMatchesBetweenProductsAndSheet = ({unifiedProducts,serializedFormatedJs
         }
         else{
             acc[codigo].cbItemSkus[account as AccountType].push(sku); 
-            acc[codigo].iva = product.Iva || defaultIva;
-            acc[codigo].rentabilidad = product.Rentabilidad || defaultProfit;
-            acc[codigo].cotizacion = inferCotizacion() || defaultExchRate;
         }
-
+        
         return acc;
 
     },{} as Record<string,ListaItem>)
@@ -83,11 +95,12 @@ const appendMissingItemsToMatchesBetweenProductsAndSheet = ({serializedFormatedJ
     },matchesBetweenProductsAndSheet)
 }
 
-export const getXlsxSheetFromMatchesBetweenProductsAndSheet = ({products,xlsxWorkbook,overWrite,xlsxSheets,sheetName,defaultExchRate,defaultIva,defaultProfit,...sheetCols}:GetXlsxSheetFromSheetItemsInProductsParams):ListaItem[]=>{
+export const getXlsxSheetFromMatchesBetweenProductsAndSheet = ({products,xlsxWorkbook,overWrite,addNewItems,xlsxSheets,sheetName,defaultExchRate,defaultIva,defaultProfit,...sheetCols}:GetXlsxSheetFromSheetItemsInProductsParams):ListaItem[]=>{
     const unifiedProducts:UnifiedProducts = Object.values(products).flatMap((accountProducts,index)=>accountProducts.map(product=>({...product,account:index?'secondary':'main'})))
     const jsonSheet = sheetToJson({xlsxWorkbook,sheetName});
     const formatedJsonSheet = formatJsonSheet({jsonSheet,...sheetCols});   
-    const serializedFormatedJsonSheet = serializeFormatedJsonSheet({formatedJsonSheet,overWrite,xlsxSheets})
+    const serializedFormatedJsonSheet = serializeFormatedJsonSheet({formatedJsonSheet,addNewItems,overWrite,xlsxSheets})
+    
     const matchesBetweenProductsAndSheet = getMatchesBetweenProductsAndSheet({unifiedProducts,serializedFormatedJsonSheet,defaultExchRate,defaultIva,defaultProfit})
     const allSheetItems = appendMissingItemsToMatchesBetweenProductsAndSheet({matchesBetweenProductsAndSheet,serializedFormatedJsonSheet,defaultExchRate,defaultIva,defaultProfit})
     

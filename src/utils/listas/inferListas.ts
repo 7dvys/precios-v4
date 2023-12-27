@@ -1,19 +1,21 @@
 import { Lista, ListaItem, Tag } from "@/types/Listas";
 import { DecodedObject, simpleDataSerializer } from "../simpleDataSerializer";
-import { ObservacionesWithTags } from "@/types/Contabilium";
+import { ObservacionesWithTags, Product } from "@/types/Contabilium";
 import { AccountType } from "@/types/Config";
 import { inferListasUtils } from "./inferListasUtils";
-import { genItemsFromLista } from "./genItemsFromLista";
 import { Products } from "@/types/Products";
 import { genItemsFromInferedLista } from "./genItemsFromInferdLista";
+import { getItemTags } from "./getItemTags";
+import { getTagsCoeficients } from "../itemsListaEditor/getTagsCoeficients";
+import { XlsxSheet } from "@/types/AgregarTypes";
 
 const {decoder} = simpleDataSerializer()
 
 export const inferListas = ({products}:{products:Products}):Lista[] =>{
     const listas:Lista[] = [];
-    const {setLista,getLista,addItemToLista,addCbItemSkuToItemLista,addTagToLista,updateListaType,isSetItemOnLista} = inferListasUtils({listas})
-    Object.entries(products).forEach(([account,accountProducts])=>{
+    const {setLista,getLista,addItemToLista,updateItemExchRate,addCbItemSkuToItemLista,addTagToLista,updateListaType,isSetItemOnLista} = inferListasUtils({listas});
 
+    (Object.entries(products) as [AccountType,Product[]][]).forEach(([account,accountProducts]) =>
         accountProducts.forEach((product)=>{
             const {
                 Codigo:sku,
@@ -23,75 +25,70 @@ export const inferListas = ({products}:{products:Products}):Lista[] =>{
                 CodigoBarras,
                 Rentabilidad:rentabilidad,
                 Iva:iva,
-                CostoInterno:costo
+                // CostoInterno:costo,
             } = product
 
-            const decodedObservaciones = decoder<ObservacionesWithTags>(observaciones) as DecodedObject<ObservacionesWithTags>;
-
-            // if(!('lista' in decodedObservaciones) || !('tagsId' in decodedObservaciones) || !('cotizacion' in decodedObservaciones) || !('proveedor' in decodedObservaciones))
-            // return ;      
+            const decodedObservaciones = decoder<ObservacionesWithTags>(observaciones) as DecodedObject<ObservacionesWithTags>;     
     
-            const {lista:[listaName],tagsId,cotizacion:[cotizacion],proveedor} = decodedObservaciones;
+            const {
+                lista:[listaName],
+                tagsId,
+                cotizacion:[cotizacion],
+                proveedor:[proveedor],
+                costoLista:[costo],
+            } = decodedObservaciones;
 
-            const vendorId = Number(CodigoBarras) || 0;
-            const vendor = proveedor[0] || 'sin proveedor';
+
+
+            const vendorId = isNaN(Number(CodigoBarras))?0:Number(CodigoBarras);
+            const vendor = proveedor || 'sin proveedor';
             const listaNameOrDefault = listaName || 'sin proveedor';
+            
+            const inferedTags = getItemTags({decodedObservaciones})
 
-            const item:ListaItem = {codigo,titulo,tagsId,costo,iva,rentabilidad,cotizacion:cotizacion||'peso',cbItemSkus:{main:[],secondary:[]}};
+            const item:ListaItem = {codigo,titulo,tagsId,costo:Number(costo),iva,rentabilidad,cotizacion:cotizacion||'peso',cbItemSkus:{main:[],secondary:[]}};
 
-            item.cbItemSkus[account as AccountType].push(sku);
+            item.cbItemSkus[account].push(sku);
         
             const lista = getLista({searchName:listaNameOrDefault});
 
-            const inferTags = ():Record<string,Tag> =>{
-                return tagsId.reduce((acc,tagId)=>{
-                    const tag = (decodedObservaciones)[tagId]
-
-                    if(!tag)
-                    return acc;
-                
-                    const [porcentual,fijo] = tag;
-                    acc[tagId] = {descripcion:'',porcentual,fijo};
-                    return acc;
-                },{} as Record<string,Tag>)
-            }
-            
-            const inferedTags = inferTags()
                         
             if(!lista)
-            setLista({
+            return setLista({
                 name:listaNameOrDefault,
                 vendor,
                 vendorId:vendorId,
                 xlsxSheets:[],
                 inferedItems:[item],
-                items:[item],
+                items:[],
                 tags:inferedTags,
                 type:account as AccountType
             })   
+            
+            const {name,type} = lista;
+            const searchListaParams = {searchName:name}
+            const isItemOnLista = isSetItemOnLista(searchListaParams,item);
 
-            else{
-                const {name,type} = lista;
-                const searchListaParams = {searchName:name}
-                const isItemOnLista = isSetItemOnLista(searchListaParams,item);
+            Object.entries(inferedTags).forEach(([tagId,tag])=>{
+                addTagToLista(searchListaParams,{tag,tagId});
+            })
 
-                if(!isItemOnLista)
-                addItemToLista(searchListaParams,item);
-                else
-                addCbItemSkuToItemLista(searchListaParams,item,account as AccountType,sku);
+            if(type !== account)
+            updateListaType(searchListaParams,'both');
 
-                Object.entries(inferedTags).forEach(([tagId,tag])=>{
-                    addTagToLista(searchListaParams,{tag,tagId});
-                })
-
-                if(type !== account)
-                updateListaType(searchListaParams,'both');
-            }
+            if(!isItemOnLista)
+            return addItemToLista(searchListaParams,item);
+            
+            addCbItemSkuToItemLista(searchListaParams,item,account,sku);
+            updateItemExchRate(searchListaParams,item,cotizacion);
         })
-    })
+    )
 
     const listasWithItems = listas.map(lista=>{
-        lista.items = genItemsFromInferedLista({lista})
+        const inferedItems = genItemsFromInferedLista({lista})
+        const inferedXlsxSheet:XlsxSheet = {fileName:'items inferidos',sheetName:'items inferidos',items:inferedItems}
+        lista.items = inferedItems;
+        lista.xlsxSheets = [inferedXlsxSheet];
 
         return lista;
     })

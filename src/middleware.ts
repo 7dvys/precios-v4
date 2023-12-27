@@ -48,5 +48,5 @@ export const middleware = async (request:NextRequest)=>{
 }
 
 export const config = {
-    matcher:['/listas','/','/opciones','/opciones/cotizaciones',]
+    matcher:['/listas/:path*','/','/opciones','/opciones/cotizaciones',]
 }

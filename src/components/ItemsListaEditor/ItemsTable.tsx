@@ -1,6 +1,6 @@
 import { ItemsTableProps } from "@/types/AgregarTypes";
 import { TableColumn } from "@/types/TableTypes";
-import { Table } from "../Table";
+import { Table } from "../Table/Table";
 import { itemsTableColumns } from "@/constants/itemsTableColumns";
 
 export const ItemsTable:React.FC<ItemsTableProps> = ({tableItems,groupFunctions})=>{

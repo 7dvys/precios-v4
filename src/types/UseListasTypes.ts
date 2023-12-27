@@ -1,6 +1,6 @@
 import { SheetInformation, XlsxSheet } from "./AgregarTypes";
 import { AccountType } from "./Config";
-import { Lista, Tag } from "./Listas"
+import { Lista, ListaItemOptionalValues, Tag } from "./Listas"
 
 export type UseListasProps = {
     initialLista?:Lista
@@ -41,6 +41,11 @@ export type RemoveListaItemSku = ({ codigo, sku, account }: {
     sku: string;
     account:AccountType
 }) => void
+
+export type UpdateListaItem = ({codigo,newItemValues}:{
+    codigo:string,
+    newItemValues:ListaItemOptionalValues
+})=>void
 
 export type AddListaItemSku = ({ codigo, newSku, account }: {
     codigo: string;

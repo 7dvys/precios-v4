@@ -111,6 +111,14 @@ h2,h3,h4,h5{
     gap:0.8rem;
 }
 
+.flex-align-center{
+    align-items: center;
+}
+
+.flex-justify-center{
+    justify-content: center;
+}
+
 .flex-space-between{
     justify-content: space-between;
 }

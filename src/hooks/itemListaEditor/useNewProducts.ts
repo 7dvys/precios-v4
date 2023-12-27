@@ -1,14 +1,11 @@
 import { AccountType } from "@/types/Config";
 import { Product } from "@/types/Contabilium";
 import { Products } from "@/types/Products";
-import { serializeProducts } from "@/utils/serializeProducts";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
 
-export const useNewProducts = ({products}:{products:Products})=>{
+export const useNewProducts = ()=>{
     const [newProducts,setNewProduct] = useState<Products>({main:[],secondary:[]});
-
-    const productsWithNewProducts:Products = {main:[...products.main,...newProducts.main],secondary:[...products.secondary,...newProducts.secondary]}
 
     const createNewProduct = ({product,account}:{product:Product,account:AccountType})=>{
         
@@ -23,5 +20,5 @@ export const useNewProducts = ({products}:{products:Products})=>{
             return currentNewProducts;
         })
     }
-    return {productsWithNewProducts,createNewProduct}
+    return {newProducts,createNewProduct}
 }

@@ -1,35 +1,33 @@
 import { Dispatch, SetStateAction } from "react";
-import { Products } from "./Products";
-import { CbToken, Product, RubrosWithSubRubros, RubrosWithSubRubrosPerAccount, Tokens, Vendor } from "./Contabilium";
-import { Cotizaciones, CotizacionesUtilsDependencies } from "./Cotizaciones";
+import { Products, SerializedProducts } from "./Products";
+import { Product, RubrosWithSubRubrosPerAccount, Tokens, Vendor } from "./Contabilium";
+import { Cotizaciones } from "./Cotizaciones";
 import { Lista, ListaItem, Tag, Tags } from "./Listas";
 import * as XLSX from 'xlsx';
-import { AddListaItemSku, AddSheet, AddTag, RemoveListaItem, RemoveListaItemSku, RemoveSheet, RemoveTag, SetNameVendorAndType } from "./UseListasTypes";
+import { AddListaItemSku, AddSheet, AddTag, RemoveListaItem, RemoveListaItemSku, RemoveSheet, RemoveTag, SetNameVendorAndType, UpdateListaItem } from "./UseListasTypes";
 import { ItemsDictionary, TableGroupFunction, TableItem } from "./TableTypes";
 import { AccountType } from "./Config";
 
 
 export type AgregarPageProps = {
     tokens:Tokens;
-    cotizacionesUtilsDependencies:CotizacionesUtilsDependencies
     products:Products;
     vendors:Vendor[];
     rubrosWithSubRubros:RubrosWithSubRubrosPerAccount;
 }
 
 export type ItemsListaEditorProps = {
-    tokens:Tokens;
     lista:Lista;
-    cotizaciones:Cotizaciones;
-    products:Products;
-    rubrosWithSubRubros:RubrosWithSubRubrosPerAccount;
     removeSheet:RemoveSheet;
     addSheet:AddSheet;
     addTag:AddTag;
     removeTag:RemoveTag;
     removeListaItem:RemoveListaItem;
+    updateListaItem:UpdateListaItem;
     removeListaItemSku:RemoveListaItemSku;
     addListaItemSku:AddListaItemSku;
+    saveLista:()=>void;
+
     readOnly:boolean;
 }  
 
@@ -50,6 +48,7 @@ export type ItemsFieldsProps = {
     setTmpXlsxSheet:Dispatch<SetStateAction<XlsxSheet>>
     removeTmpXlsxSheet:()=>void;
     removeSheet:RemoveSheet;
+    finishListaFunc:()=>void;
 }
 
 export type ItemsTableProps = {
@@ -96,14 +95,21 @@ export type FormatedJsonSheetItem = {
     tagsId: string[]
 }
 
-export type AddSkuModalProps = {
-    productsWithNewProducts:Products;
+export type ItemEditorProps = {
+    clearTableItemIdToEditSkuList:()=>void;
+    serializedProducts:SerializedProducts;
+    serializedListaItems:Record<string,ListaItem>;
+    cotizaciones:Cotizaciones;
+    tags:Tags
+    fixedProducts:Products;
     listaItemsAndTmpXlsxSheetItems:ListaItem[];
     rubrosWithSubRubros:RubrosWithSubRubrosPerAccount;
     itemsDictionary:ItemsDictionary;
     tableItemIdToEditSkuList: number[]
+    tokens:Tokens;
     removeTableItemIdToEditSkuList: (id: number) => void
     removeItemSku:RemoveListaItemSku
+    updateListaItem:UpdateListaItem;
     addItemSku:AddListaItemSku
     getCbItemByCodigo:({account,codigo}:{account:AccountType,codigo:string})=>Promise<Product|{error:string}>
     createItemSku:(params:{product:Product,account:AccountType,codigo:string})=>void;

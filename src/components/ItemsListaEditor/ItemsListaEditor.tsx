@@ -7,35 +7,78 @@ import { TagsEditor } from "../TagsEditor";
 import { inferTagsFromsItems } from "@/utils/itemsListaEditor/inferTagsFromItems";
 import { genGroupFunctions } from "@/utils/itemsListaEditor/genGroupFunctions";
 import { useTmpXlsxSheet } from "@/hooks/itemListaEditor/useTmpXlsxSheet";
-import { useNewProducts } from "@/hooks/itemListaEditor/useNewProducts";
 import { listaItemsAndTmpXlsxSheetItemsUtils } from "@/utils/itemsListaEditor/listaItemsAndTmpXlsxSheetItemsUtils";
 import { useTableItemIdToEditSkuList } from "@/hooks/itemListaEditor/useTableItemIdToEditSkuList";
-import { SkuEditor } from "./SkuEditor";
-import { Product, Tokens } from "@/types/Contabilium";
+import { ItemEditor } from "./ItemEditor";
+import { Product } from "@/types/Contabilium";
 import { AccountType } from "@/types/Config";
 import { getProductByCodigo } from "@/services/contabilium/accountProducts";
+import { serializeListaItems } from "@/utils/listas/serializeListaItems";
+import { serializeProducts } from "@/utils/serializeProducts";
+import { UpdateProductsModal } from "./UpdateProductsModal";
+import { useContext, useEffect, useState } from "react";
+import { genNewCbProductsFromLista } from "@/utils/itemsListaEditor/genNewCbProductsFromLista";
+import { updateProducts } from "@/utils/contabilium/updateProducts";
+import { Cotizaciones } from "@/types/Cotizaciones";
+import { ContabiliumContext } from "@/contexts/ContabiliumContext";
+import { cotizacionesUtils } from "@/utils/cotizaciones/cotizacionesUtils";
 
-export const ItemsListaEditor:React.FC<ItemsListaEditorProps> = ({lista:{tags,xlsxSheets,items,name,vendor},cotizaciones,products,rubrosWithSubRubros,addSheet,removeSheet,addTag,removeTag,removeListaItem,removeListaItemSku,addListaItemSku,readOnly,tokens})=>{
-    const {productsWithNewProducts,createNewProduct} = useNewProducts({products});
-    const {tmpXlsxSheet,addTmpXlsxSheetToLista,setTmpXlsxSheet,removeTmpXlsxSheet,removeTmpXlsxSheetItem,removeTmpXlsxSheetItemSku,addTmpXlsxSheetItemSku} = useTmpXlsxSheet({addSheet})
+export const ItemsListaEditor:React.FC<ItemsListaEditorProps> = ({updateListaItem,lista,addSheet,removeSheet,addTag,removeTag,removeListaItem,saveLista,removeListaItemSku,addListaItemSku,readOnly})=>{
+    const [cotizaciones,setCotizaciones] = useState<Cotizaciones|undefined>(undefined)
+    const {fixedProducts,rubrosWithSubRubrosPerAccount,tokens,updateProducts:updateContextProducts} = useContext(ContabiliumContext);
 
-    const {listaItemsAndTmpXlsxSheetItems,removeItem,removeItemSku,addItemSku} = listaItemsAndTmpXlsxSheetItemsUtils({listaItems:items,addListaItemSku,removeListaItem,removeListaItemSku,removeTmpXlsxSheetItem,removeTmpXlsxSheetItemSku,addTmpXlsxSheetItemSku,tmpXlsxSheetItems:tmpXlsxSheet.items})
+    const initCotizaciones = async ()=>{
+        const {getCotizaciones} = await cotizacionesUtils({products:fixedProducts});
+        const cotizaciones = getCotizaciones();
+        setCotizaciones(cotizaciones);
+    }
+
+    useEffect(()=>{
+        initCotizaciones();
+    },[])
+    
+    const [onUpdate,setOnUpdate] = useState<boolean>(false)
+    const {tags,xlsxSheets,items,name,vendor,type} = lista;
+        
+    const {tmpXlsxSheet,addTmpXlsxSheetToLista,setTmpXlsxSheet,removeTmpXlsxSheet,removeTmpXlsxSheetItem,updateTmpXlsxSheetItem,removeTmpXlsxSheetItemSku,addTmpXlsxSheetItemSku} = useTmpXlsxSheet({addSheet})
+
+    const {listaItemsAndTmpXlsxSheetItems,removeItem,removeItemSku,addItemSku} = listaItemsAndTmpXlsxSheetItemsUtils({listaItems:items,addListaItemSku,removeListaItem,removeListaItemSku,removeTmpXlsxSheetItem,updateListaItem,updateTmpXlsxSheetItem,removeTmpXlsxSheetItemSku,addTmpXlsxSheetItemSku,tmpXlsxSheetItems:tmpXlsxSheet.items})
+    
+    const serializedListaItems = serializeListaItems({listaItems:listaItemsAndTmpXlsxSheetItems});
+    const serializedProducts = serializeProducts({products:fixedProducts});
 
     const inferedTags = inferTagsFromsItems({items:listaItemsAndTmpXlsxSheetItems,tags});
-    const {itemsDictionary,tableItems} = getTableItemsAndItemsDictionary({products:productsWithNewProducts,items:listaItemsAndTmpXlsxSheetItems,tags,rubrosWithSubRubros})
+    const {itemsDictionary,tableItems} = getTableItemsAndItemsDictionary({products:fixedProducts,items:listaItemsAndTmpXlsxSheetItems,tags,rubrosWithSubRubros:rubrosWithSubRubrosPerAccount})
 
-    const {tableItemIdToEditSkuList,removeTableItemIdToEditSkuList,addTableItemIdToEditSkuList} = useTableItemIdToEditSkuList()
+    const {tableItemIdToEditSkuList,removeTableItemIdToEditSkuList,addTableItemIdToEditSkuList,clearTableItemIdToEditSkuList} = useTableItemIdToEditSkuList()
+
+    if(fixedProducts.main.length === 0 || fixedProducts.secondary.length === 0 || cotizaciones === undefined || lista===undefined)
+    return <>cargando lista...</>;
     
-    const groupFunctions = readOnly?undefined:genGroupFunctions({itemsDictionary,removeItem,addTableItemIdToEditSkuList});
+    const groupFunctions = readOnly?undefined:genGroupFunctions({itemsDictionary,removeItemSku,listaItems:items,removeItem,addTableItemIdToEditSkuList});
 
     const getCbItemByCodigo = ({codigo,account}:{codigo:string,account:AccountType}):Promise<Product|{error:string}> =>{
-        const tokenKey:keyof Tokens = account === 'main'?'cbTokenMain':'cbTokenSecondary'
-        return getProductByCodigo({codigo,token:tokens[tokenKey]})
+        return getProductByCodigo({codigo,token:tokens[account]});
     }
 
     const createItemSku = ({product,account,codigo}:{product:Product,account:AccountType,codigo:string})=>{
-        createNewProduct({product,account});
+        const newProducts = {main:[],secondary:[],[account]:[product]};
+        updateContextProducts({newProducts});
         addItemSku({newSku:product.Codigo,account,codigo})
+    }
+
+    const initUpdateProducts = ()=>{
+        const formatedProductsToUpdate = genNewCbProductsFromLista({lista,products:fixedProducts,cotizaciones})
+
+        if(formatedProductsToUpdate === undefined)
+        return false;
+    
+        return updateProducts(tokens,formatedProductsToUpdate,type);
+    }
+
+    const finishLista = async ()=>{
+        saveLista();
+        setOnUpdate(true)               
     }
     
     const renderItemsFieldsAndTagsEditor = !readOnly && name && vendor;
@@ -44,14 +87,21 @@ export const ItemsListaEditor:React.FC<ItemsListaEditorProps> = ({lista:{tags,xl
     return (
         <>
             {renderItemsFieldsAndTagsEditor && <TagsEditor tags={tags} addTag={addTag} removeTag={removeTag} inferedTags={inferedTags}/>}
-            {renderItemsFieldsAndTagsEditor && <ItemsFields removeSheet={removeSheet} tmpXlsxSheet={tmpXlsxSheet} setTmpXlsxSheet={setTmpXlsxSheet} addTmpXlsxSheetToLista={addTmpXlsxSheetToLista} removeTmpXlsxSheet={removeTmpXlsxSheet} xlsxSheets={xlsxSheets} cotizaciones={cotizaciones} products={productsWithNewProducts} />}
+            {renderItemsFieldsAndTagsEditor && <ItemsFields finishListaFunc={finishLista} removeSheet={removeSheet} tmpXlsxSheet={tmpXlsxSheet} setTmpXlsxSheet={setTmpXlsxSheet} addTmpXlsxSheetToLista={addTmpXlsxSheetToLista} removeTmpXlsxSheet={removeTmpXlsxSheet} xlsxSheets={xlsxSheets} cotizaciones={cotizaciones} products={fixedProducts} />}
             {renderItemsTable && <ItemsTable tableItems={tableItems} groupFunctions={groupFunctions}/>}
             
-            <SkuEditor 
-                productsWithNewProducts={productsWithNewProducts} 
+            <ItemEditor 
+                clearTableItemIdToEditSkuList={clearTableItemIdToEditSkuList}
+                updateListaItem={updateListaItem}
+                serializedProducts={serializedProducts}
+                serializedListaItems={serializedListaItems}
+                cotizaciones={cotizaciones}
+                tags={tags}
+                tokens={tokens}
+                fixedProducts={fixedProducts} 
                 listaItemsAndTmpXlsxSheetItems={listaItemsAndTmpXlsxSheetItems} 
                 tableItemIdToEditSkuList={tableItemIdToEditSkuList}
-                rubrosWithSubRubros={rubrosWithSubRubros}
+                rubrosWithSubRubros={rubrosWithSubRubrosPerAccount}
                 removeTableItemIdToEditSkuList={removeTableItemIdToEditSkuList}
                 itemsDictionary={itemsDictionary}
                 removeItemSku={removeItemSku}
@@ -59,6 +109,8 @@ export const ItemsListaEditor:React.FC<ItemsListaEditorProps> = ({lista:{tags,xl
                 getCbItemByCodigo={getCbItemByCodigo}
                 createItemSku={createItemSku}
             />
+
+            {onUpdate && <UpdateProductsModal updateContextProducts={updateContextProducts} setOnUpdate={setOnUpdate} initUpdateProducts={initUpdateProducts}/>}
         </>
     )
 }

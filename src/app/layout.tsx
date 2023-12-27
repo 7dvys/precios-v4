@@ -1,10 +1,9 @@
 import type { Metadata } from 'next'
-// import { Inter } from 'next/font/google'
 import '@/styles/globals.css'
 import { Nav } from '@/components/Nav'
 import { NotificationStack } from '@/components/NotificationsStack'
-
-// const inter = Inter({ subsets: ['latin'] })
+import { ContabiliumProvider } from '@/providers/ContabiliumProvider'
+import { getTokensFromCookies } from '@/utils/contabilium/getTokens'
 
 export const metadata: Metadata = {
   title: 'Gautama',
@@ -15,12 +14,15 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+
+  const tokens = getTokensFromCookies();
+  
   return (
     <html lang="es">
       <body>
         <Nav/>
         <div className='rootContainer'>
-          {children}
+          <ContabiliumProvider tokens={tokens}>{children}</ContabiliumProvider>
           <NotificationStack/>
         </div>
       </body>

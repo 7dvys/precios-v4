@@ -5,23 +5,24 @@ export const getAccountVendors = async ({token}:{token:string})=>{
     try{
         const location = 'https://rest.contabilium.com/api/proveedores/search?pageSize=50&page=';
 
-        const config = {
+        const config:RequestInit = {
             method:'GET',
             headers:{
                 'Content-Type':'application/json',
                 'Authorization':'Bearer '+token,
             },
-            next:{
-                revalidate:1800,
-                tags:['accountVendors']
-            } // Cacheado por una hora.
+            cache:'no-store'
+            // next:{
+            //     revalidate:1800,
+            //     tags:['accountVendors']
+            // } // Cacheado por una hora.
         }
 
         let page = 0;
         const response = await fetch(location+`${++page}`,config as ResponseInit);
 
         if(!response.ok){
-            revalidateTag('accountVendors')
+            // revalidateTag('accountVendors')
             return [];
         }
         
@@ -58,7 +59,7 @@ export const getAccountVendors = async ({token}:{token:string})=>{
         return allVendors;
     }
     catch(error){
-        revalidateTag('accountVendors');
+        // revalidateTag('accountVendors');
         return [] as Vendor[]
     }
 }

@@ -1,18 +1,27 @@
 'use client'
 
-import { Lista, ListaItem } from "@/types/Listas";
-import { Table } from "@/components/Table";
+import { ListaItem } from "@/types/Listas";
+import { Table } from "@/components/Table/Table";
 import { TableColumn, TablePanelInformation } from "@/types/TableTypes";
 import Link from "next/link";
 import { PenIcon } from "@/components/icons/Pen";
 import { isClient } from "@/constants/isClient";
 import { useDbListas } from "@/hooks/useDbListas";
+import { inferListas } from "@/utils/listas/inferListas";
+import { useContext } from "react";
+import { ContabiliumContext } from "@/contexts/ContabiliumContext";
 
-export const ListasPage:React.FC<{inferedListas:Lista[]}> =({inferedListas})=>{
+export const ListasPage:React.FC =()=>{
+    const {fixedProducts,vendors} = useContext(ContabiliumContext);
+    const inferedListas = inferListas({products:fixedProducts});
+    
+    const {listas} = useDbListas({inferedListas})
+
     if(!isClient)
     return;
 
-    const {listas} = useDbListas({inferedListas})
+    if(fixedProducts.main.length === 0 || fixedProducts.secondary.length === 0)
+    return <>cargando...</>
 
     if(listas.length === 0)
     return;

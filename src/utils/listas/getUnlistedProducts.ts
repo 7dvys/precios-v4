@@ -1,4 +1,4 @@
-import { Products } from "@/types";
+import { Products } from "@/types/Products";
 import { observacionesHasLista } from "./observacionesHasLista";
 
 export const getUnlistedProducts = ({products}:{products:Products})=>{

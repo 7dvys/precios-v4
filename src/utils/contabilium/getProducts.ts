@@ -1,15 +1,12 @@
 import { getAccountProducts } from "@/services/contabilium/accountProducts";
-import { Product } from "@/types/Contabilium";
+import { Product, Tokens } from "@/types/Contabilium";
 import { Products } from "@/types/Products";
 
-type GetProductsParameters = {
-    cbTokenMain:string,
-    cbTokenSecondary:string;
-}
+export const getProducts = async ({tokens}:{tokens:Tokens}):Promise<Products> =>{
 
-export const getProducts = async ({cbTokenMain,cbTokenSecondary}:GetProductsParameters):Promise<Products>=>{
-    const mainProducts:Product[] = await getAccountProducts({token:cbTokenMain});
-    const secondaryProducts:Product[] = await getAccountProducts({token:cbTokenSecondary})
+    const mainProducts:Product[] = await getAccountProducts({token:tokens.main});
+    const secondaryProducts:Product[] = await getAccountProducts({token:tokens.secondary})
+    
     const products = {main:mainProducts,secondary:secondaryProducts}
     return products;
 }

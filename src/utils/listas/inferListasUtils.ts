@@ -56,8 +56,31 @@ export const inferListasUtils = ({listas}:{listas:Lista[]})=>{
         modifyLista(listaSearchCriteria,(lista)=>{
             const prevItems = lista.inferedItems
             lista.inferedItems = prevItems.map(prevItem=>{
-                if(prevItem.codigo == item.codigo)
+                if(prevItem.codigo === item.codigo)
                 return {...prevItem,...item};
+
+                return prevItem
+            })
+        })
+    }
+
+    const updateItemExchRate = (listaSearchCriteria:ListaSearchCriteria,item:ListaItem,newExchRate:string)=>{
+        modifyLista(listaSearchCriteria,(lista)=>{
+            const prevItems = lista.inferedItems
+            lista.inferedItems = prevItems.map(prevItem=>{
+                if(prevItem.codigo !== item.codigo)
+                return prevItem
+
+                const prevExchRate = prevItem.cotizacion;
+
+                if((prevExchRate !== 'peso' && prevExchRate !== 'blue') || prevExchRate === newExchRate || newExchRate === null || newExchRate === undefined)
+                return prevItem;
+
+                if(newExchRate !== 'peso' && newExchRate !== 'blue')
+                return {...prevItem,cotizacion:newExchRate}
+
+                if(newExchRate === 'blue')
+                return {...prevItem,cotizacion:newExchRate}
 
                 return prevItem
             })
@@ -70,5 +93,5 @@ export const inferListasUtils = ({listas}:{listas:Lista[]})=>{
         })
     }
 
-    return {setLista,getLista,addItemToLista,addCbItemSkuToItemLista,updateListaType,updateItem,isSetItemOnLista,addTagToLista}
+    return {setLista,getLista,addItemToLista,addCbItemSkuToItemLista,updateItemExchRate,updateListaType,updateItem,isSetItemOnLista,addTagToLista}
 }

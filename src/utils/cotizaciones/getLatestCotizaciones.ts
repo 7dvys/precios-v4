@@ -1,4 +1,4 @@
-import { Products } from "@/types"
+import { Products } from "@/types/Products";
 import { Cotizaciones } from "@/types/Cotizaciones"
 import { simpleDataSerializer } from "../simpleDataSerializer";
 import { Observaciones, ObservacionesWithoutTags } from "@/types/Contabilium";
@@ -16,8 +16,6 @@ export const getLatestCotizaciones = ({products}:{products:Products}):Cotizacion
             return;
 
             const decodedObservaciones = decoder<ObservacionesWithoutTags>(Observaciones as string) ;
-
-            
 
             if(!('ultActualizacion' in decodedObservaciones) || !('cotizacion' in decodedObservaciones) || !('cotizacionPrecio' in decodedObservaciones))
             return;
@@ -38,6 +36,7 @@ export const getLatestCotizaciones = ({products}:{products:Products}):Cotizacion
             historicalCotizacionesList[cotizacion].push({ultActualizacion:date,cotizacionPrecio});
         })
     })
+    // console.log((historicalCotizacionesList['NEOREP']))
 
     const latestCotizaciones:Cotizaciones = Object.entries(historicalCotizacionesList).reduce((acc,[cotizacion,historicos])=>{
         const latestCotizacionPrecio = historicos.sort(({ultActualizacion:dateA},{ultActualizacion:dateB})=>{
@@ -47,6 +46,7 @@ export const getLatestCotizaciones = ({products}:{products:Products}):Cotizacion
         acc[cotizacion]=latestCotizacionPrecio;
         return acc;
     },{} as Cotizaciones);
+
 
     return latestCotizaciones;
 }

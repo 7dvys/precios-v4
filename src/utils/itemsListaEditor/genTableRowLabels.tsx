@@ -32,7 +32,7 @@ export const genSheetItemRow = ({fixedCoeficient,porcentualCoeficientFactor,prof
        </div>
     )
 
-    const precioFinalTagDetail = tagsId.length?`${fixedCoeficient>=0?'+':'-'} TAGS FIJO ${fixedCoeficient} ${porcentualCoeficientFactor>=1?'+':'-'} TAGS PORCENTUAL ${(porcentualCoeficientFactor-1)*100}`:null
+    const precioFinalTagDetail = tagsId.length?`${fixedCoeficient>=0?'+':'-'} TAGS FIJO ${fixedCoeficient} ${porcentualCoeficientFactor>=1?'+':'-'} TAGS PORCENTUAL ${((porcentualCoeficientFactor-1)*100).toFixed(2)}%`:null
 
     const precioFinalLabel = (
        <div className="flex-column flex-gap-s">

@@ -1,27 +1,44 @@
 import { DATABASE } from "@/constants/database"
 import { indexedDbUtils } from "../indexedDbUtils"
 import {  Lista } from "@/types/Listas"
+import { serializeListaItems } from "./serializeListaItems";
 
 export const dbListasUtils =async ()=>{
     const {getAll,add,remove,update} = await indexedDbUtils<Lista>(DATABASE.OBJECTS_STORE.listas);
 
-    const addInferedListaToDbIfNotExist = async ({inferedListas}:{ inferedListas: Lista[]})=>{
+    const addListaIfNotExist = async ({listas}:{ listas: Lista[]})=>{
         const currentListas = await getListas()
-        const listasNotInDb = inferedListas.filter(lista=>{
+        const listasNotInDb = listas.filter(lista=>{
             const isInCurrentListas = Object.values(currentListas).some(({name})=>name===lista.name);
             return !isInCurrentListas
         })
+        if(listasNotInDb.length>0)
         await add(listasNotInDb);
     }
 
-    const updateInferedListas = async ({inferedListas}:{ inferedListas: Lista[]})=>{
+    const saveListas = async ({listas}:{listas:Lista[]})=>{
+        const currentListas = await getListas();
+        listas.forEach(lista=>{
+            const listaInCurrentListas = Object.values(currentListas).find(({name})=>name===lista.name);
+            if(listaInCurrentListas === undefined)
+            return add([lista]);
+            const listaInCurrentListasSerializedItems = serializeListaItems({listaItems:listaInCurrentListas.items})
+            const listasSerializedItems = serializeListaItems({listaItems:lista.items})
+
+            const newListaItems = Object.values({...listaInCurrentListasSerializedItems,...listasSerializedItems}); 
+
+            return update([{...listaInCurrentListas,...lista,items:newListaItems}]);
+        })
+    }
+
+    const updateListas = async ({listas}:{ listas: Lista[]})=>{
         const currentListas = await getListas()
-        const listasInDb = inferedListas.map(lista=>{
+        const listasInDb = listas.map(lista=>{
             const listaInCurrentListas = Object.values(currentListas).find(({name})=>name===lista.name);
             if(listaInCurrentListas === undefined)
             return null
 
-            return listaInCurrentListas;
+            return {...listaInCurrentListas,...lista};
         })
         .filter((lista):lista is (Lista & {
             id: number;
@@ -54,5 +71,5 @@ export const dbListasUtils =async ()=>{
         return Object.values(currentListas).some((lista)=>lista.name === name);
     }
 
-    return {addInferedListaToDbIfNotExist,cleanDuplicatedItemsOnDb,getListas,inListas,updateWithoutVendorLista}
+    return {addListaIfNotExist,updateListas,saveListas,cleanDuplicatedItemsOnDb,getListas,inListas,updateWithoutVendorLista}
 }

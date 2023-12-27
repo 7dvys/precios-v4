@@ -3,7 +3,6 @@ import { RefObject } from "react";
 import { LabelWrapper } from "../LabelWrapper";
 
 export const SkuEditorCreateSku:React.FC<{newProductTitleRef:RefObject<HTMLInputElement>,newProductStockRef:RefObject<HTMLInputElement>,title:string|null,codigo:string}> = ({newProductStockRef,newProductTitleRef,title,codigo})=>{    
-    
     return (
     <div className={"flex-column "+addSkuModalStyles.addedSkuLabel}>
         <LabelWrapper labelText="nuevo producto">
