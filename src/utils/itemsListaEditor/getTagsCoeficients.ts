@@ -10,8 +10,8 @@ export const getTagsCoeficients = ({tags,itemTagsId}:{tags:Tags,itemTagsId:strin
     itemTagsId.forEach(tagId=>{
         if(tagId in tags){
             const {fijo,porcentual} = tags[tagId];
-            const porcentualFactor = (porcentual/100)+1;
-            fixedCoeficient+=fijo;
+            const porcentualFactor = (Number(porcentual)/100)+1;
+            fixedCoeficient+=Number(fijo);
             porcentualCoeficientFactor*=porcentualFactor;
         }
     })

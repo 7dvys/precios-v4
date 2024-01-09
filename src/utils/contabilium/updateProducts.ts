@@ -2,7 +2,7 @@ import { updateAccountProducts } from "@/services/contabilium/accountProducts";
 import { Products } from "@/types/Products";
 import { Tokens } from "@/types/Contabilium";
 import { AccountType } from "@/types/Config";
-import { UpdatedProductStatus } from "@/components/ItemsListaEditor/UpdateProductsModal";
+import { UpdatedProductStatus } from "@/components/UpdateProductsModal";
 
 export const updateProducts = async (tokens:Tokens,{main,secondary}:Products,listaType:AccountType|'both')=>{
     const updateProductsStatus:UpdatedProductStatus = {main:{},secondary:{}};

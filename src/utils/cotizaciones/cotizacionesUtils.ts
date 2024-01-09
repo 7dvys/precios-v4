@@ -9,7 +9,11 @@ export const cotizacionesUtils = async ({products}:{products:Products})=>{
     
     const getCotizaciones = (): Cotizaciones => {
         const cotizacionesJson = isClient?localStorage.getItem(LOCALSTORAGE_KEYS.cotizaciones)??'{}':'{}';
-        return JSON.parse(cotizacionesJson);
+        const parsedCotizaciones = Object.entries(JSON.parse(cotizacionesJson)).reduce((acc,[title,value])=>{
+            acc[title] = Number(value);
+            return acc;
+        },{} as Cotizaciones)
+        return parsedCotizaciones;
     }
 
     const updateCotizacion = ({title,value}:{title:string,value:number})=>{
@@ -33,7 +37,7 @@ export const cotizacionesUtils = async ({products}:{products:Products})=>{
     }
 
     const initCotizaciones = ()=>{
-        const currentCotizaciones = getCotizaciones();
+        // const currentCotizaciones = getCotizaciones();
         const {blue,oficial} = dolaresCotizaciones;
         const defaultCotizaciones = {peso:1,blue,oficial}
 

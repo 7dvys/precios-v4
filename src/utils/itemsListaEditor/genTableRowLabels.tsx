@@ -63,6 +63,7 @@ export const genCbItemRow = ({sheetItemCodigo,rubro,cbItemCosto,cbItemIva,subRub
     const currentVendor = observaciones !== null? observaciones.proveedor[0]:null;   
     const currentTags = observaciones !== null? observaciones.tagsId:null;   
     const currentCotizacion = observaciones !== null?observaciones.cotizacion[0]:null;
+    const currentEnlazado = observaciones !== null?observaciones.enlazadoMl[0]:'sin revisar';
     
     const itemLabel = (
         <div className="flex-column">
@@ -75,6 +76,7 @@ export const genCbItemRow = ({sheetItemCodigo,rubro,cbItemCosto,cbItemIva,subRub
                 <p><strong>rubro: </strong>{rubro}</p>
                 <p><strong>subRubro: </strong>{subRubro}</p>
                 <p><strong>stock: </strong>{cbItemStock}</p>
+                <p><strong>enlazado: </strong>{currentEnlazado}</p>
             </div>
         </div>
     )

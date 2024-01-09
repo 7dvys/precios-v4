@@ -1,65 +1,51 @@
 import { TableGroupFunction, TableItemIdentifier } from "@/types/TableTypes";
 import { RemoveListaItem, RemoveListaItemSku, } from "@/types/UseListasTypes";
-import { parseStringToDecimalNumber } from "../parseStringToDecimalNumber";
 import { ListaItem } from "@/types/Listas";
-import { serializeListaItems } from "../listas/serializeListaItems";
+import { AccountType } from "@/types/Config";
+import { Dispatch, SetStateAction } from "react";
 
 
-export const genGroupFunctions = ({itemsDictionary,listaItems,removeItemSku,removeItem,addTableItemIdToEditSkuList}:{
+export const genGroupFunctions = ({itemsDictionary,removeItemSku,removeItem,addTableItemIdToEditSkuList,setRemoveObservationQueue}:{
     listaItems:ListaItem[]
     itemsDictionary:Record<number,TableItemIdentifier>,
     removeItem:RemoveListaItem,
     removeItemSku:RemoveListaItemSku,
     addTableItemIdToEditSkuList:(id:number)=>void
+    setRemoveObservationQueue:Dispatch<SetStateAction<{sku:string,account:AccountType}[]>>
 
 }):TableGroupFunction[]=>{
   
-    const removeRow = (selectedIds:number[])=>{
-        const confirmRemove = selectedIds.length > 0 && confirm('Desea eliminar '+selectedIds.length+' items?')
+    const removeRow = (selectedIds:number[],clearSelections:()=>void)=>{
+        const confirmRemove = selectedIds.length > 0 && confirm('Desea eliminar los items seleccionados?') 
         if(confirmRemove === false)
         return;
+
+        const removeObservationQueue:{sku:string,account:AccountType}[] = [];
+
+        const deleteListaItemsBoolean = confirm('Desea eliminar los elementos de lista?'); 
         
         selectedIds.forEach(selectedId=>{
             if(!(selectedId in itemsDictionary))
             return;
 
-            const {codigo,sku,account} = itemsDictionary[selectedId]
+            const {codigo,sku,account} = itemsDictionary[selectedId];
 
-            if(sku === null || account === null){
-                removeItem({codigo})
-            }
-            else{
+            const isListaSkuItem = sku !== null && account !== null;
+
+            if(isListaSkuItem){
                 removeItemSku({codigo,sku,account})
+                removeObservationQueue.push({sku,account})
             }
+            
+            if(deleteListaItemsBoolean)
+            return removeItem({codigo});
         }) 
+
+        setRemoveObservationQueue(removeObservationQueue);
+        clearSelections();
     }
 
-    // const changeListaItemsCost = (selectedIds:number[])=>{
-    //     const serializedListaItems = serializeListaItems({listaItems});
-
-    //     selectedIds.forEach(selectedId=>{
-    //         if(!(selectedId in itemsDictionary))
-    //         return;
-        
-    //         const {codigo,sku,account} = itemsDictionary[selectedId];
-
-    //         if(sku !== null || account !== null)
-    //         return;
-
-    //         const listaItem = serializedListaItems[codigo];
-
-    //         const promptText = `Modificar costo para el codigo: ${codigo}?`
-    //         const newCostString = prompt(promptText,listaItem.costo.toString()) || '';
-    //         const newCost = parseStringToDecimalNumber(newCostString);
-
-    //         if(newCost === false)
-    //         return;
-
-    //         changeItemCosto({newCost,codigo})
-    //     })
-    // }
-
-    const editItems = (selectedIds:number[])=>{
+    const editItems = (selectedIds:number[],clearSelections:()=>void)=>{
         selectedIds.forEach(selectedId=>{
             if(!(selectedId in itemsDictionary))
             return false;
@@ -68,6 +54,7 @@ export const genGroupFunctions = ({itemsDictionary,listaItems,removeItemSku,remo
             if (sku === null && account === null)
             addTableItemIdToEditSkuList(selectedId)
         })
+        // clearSelections();
     }
 
     return [

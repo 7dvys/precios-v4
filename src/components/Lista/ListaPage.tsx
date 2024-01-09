@@ -15,7 +15,7 @@ export const ListaPage:React.FC<ListaPageProps> =  ({listaId})=>{
 
     const [readOnly,setReadOnly] = useState<boolean>(true);
     const [currentLista,setCurrentLista] = useState<DbLista|undefined>(undefined)
-    const {lista,addTag,removeTag,saveLista,addSheet,updateListaItem,removeSheet,removeListaItem,removeListaItemSku,addListaItemSku,changeListaAllCosts} = useListas({initialLista:currentLista})  
+    const {lista,setType,addTag,removeTag,saveLista,addSheet,updateListaItem,removeSheet,removeListaItem,removeListaItemSku,addListaItemSku,changeListaAllCosts} = useListas({initialLista:currentLista})  
 
 
     const initCurrentLista = async ()=>{
@@ -33,12 +33,14 @@ export const ListaPage:React.FC<ListaPageProps> =  ({listaId})=>{
         initCurrentLista();
     },[])
 
+    console.log(lista)
+
     if(!isClient)
     return;
 
     return (
         <>
-            <EditListaPanel changeListaAllCosts={changeListaAllCosts} setReadOnly={setReadOnly} readOnly={readOnly}/>
+            <EditListaPanel lista={lista} setType={setType} changeListaAllCosts={changeListaAllCosts} saveLista={saveLista} setReadOnly={setReadOnly} readOnly={readOnly}/>
             <ItemsListaEditor readOnly={readOnly} updateListaItem={updateListaItem} saveLista={saveLista} addListaItemSku={addListaItemSku} removeListaItem={removeListaItem} removeListaItemSku={removeListaItemSku} removeSheet={removeSheet} addSheet={addSheet} addTag={addTag} removeTag={removeTag} lista={lista}/>
         </>
     )

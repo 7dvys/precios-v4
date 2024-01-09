@@ -6,7 +6,7 @@ import { dbListasUtils } from "@/utils/listas/dbListasUtils";
 import { useEffect, useState } from "react";
 
 export const useDbListas = ({inferedListas}:{inferedListas:Lista[]})=>{
-    const [listas,setListas] = useState<DbLista[]>([])
+    const [listas,setListas] = useState<Record<number,DbLista>>([])
 
     const initListas = async ()=>{
         if(!isClient)
@@ -17,7 +17,7 @@ export const useDbListas = ({inferedListas}:{inferedListas:Lista[]})=>{
         await saveListas({listas:inferedListas})
         await cleanDuplicatedItemsOnDb();
 
-        const newListas = await getListas() as DbLista[];
+        const newListas = await getListas() as Record<number,DbLista>;
 
         setListas(newListas);
     }

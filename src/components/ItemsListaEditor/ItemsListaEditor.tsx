@@ -15,15 +15,17 @@ import { AccountType } from "@/types/Config";
 import { getProductByCodigo } from "@/services/contabilium/accountProducts";
 import { serializeListaItems } from "@/utils/listas/serializeListaItems";
 import { serializeProducts } from "@/utils/serializeProducts";
-import { UpdateProductsModal } from "./UpdateProductsModal";
+import { UpdateProductsModal } from "../UpdateProductsModal";
 import { useContext, useEffect, useState } from "react";
 import { genNewCbProductsFromLista } from "@/utils/itemsListaEditor/genNewCbProductsFromLista";
 import { updateProducts } from "@/utils/contabilium/updateProducts";
 import { Cotizaciones } from "@/types/Cotizaciones";
 import { ContabiliumContext } from "@/contexts/ContabiliumContext";
 import { cotizacionesUtils } from "@/utils/cotizaciones/cotizacionesUtils";
+import { RemoveObservationModal } from "./RemoveObservationModal";
 
 export const ItemsListaEditor:React.FC<ItemsListaEditorProps> = ({updateListaItem,lista,addSheet,removeSheet,addTag,removeTag,removeListaItem,saveLista,removeListaItemSku,addListaItemSku,readOnly})=>{
+    const [onUpdate,setOnUpdate] = useState<boolean>(false);
     const [cotizaciones,setCotizaciones] = useState<Cotizaciones|undefined>(undefined)
     const {fixedProducts,rubrosWithSubRubrosPerAccount,tokens,updateProducts:updateContextProducts} = useContext(ContabiliumContext);
 
@@ -37,7 +39,7 @@ export const ItemsListaEditor:React.FC<ItemsListaEditorProps> = ({updateListaIte
         initCotizaciones();
     },[])
     
-    const [onUpdate,setOnUpdate] = useState<boolean>(false)
+    const [removeObservationQueue,setRemoveObservationQueue] = useState<{sku:string,account:AccountType}[]>([]);
     const {tags,xlsxSheets,items,name,vendor,type} = lista;
         
     const {tmpXlsxSheet,addTmpXlsxSheetToLista,setTmpXlsxSheet,removeTmpXlsxSheet,removeTmpXlsxSheetItem,updateTmpXlsxSheetItem,removeTmpXlsxSheetItemSku,addTmpXlsxSheetItemSku} = useTmpXlsxSheet({addSheet})
@@ -54,8 +56,8 @@ export const ItemsListaEditor:React.FC<ItemsListaEditorProps> = ({updateListaIte
 
     if(fixedProducts.main.length === 0 || fixedProducts.secondary.length === 0 || cotizaciones === undefined || lista===undefined)
     return <>cargando lista...</>;
-    
-    const groupFunctions = readOnly?undefined:genGroupFunctions({itemsDictionary,removeItemSku,listaItems:items,removeItem,addTableItemIdToEditSkuList});
+        
+    const groupFunctions = readOnly?undefined:genGroupFunctions({itemsDictionary,removeItemSku,setRemoveObservationQueue,listaItems:items,removeItem,addTableItemIdToEditSkuList});
 
     const getCbItemByCodigo = ({codigo,account}:{codigo:string,account:AccountType}):Promise<Product|{error:string}> =>{
         return getProductByCodigo({codigo,token:tokens[account]});
@@ -72,17 +74,18 @@ export const ItemsListaEditor:React.FC<ItemsListaEditorProps> = ({updateListaIte
 
         if(formatedProductsToUpdate === undefined)
         return false;
-    
+        
         return updateProducts(tokens,formatedProductsToUpdate,type);
     }
 
     const finishLista = async ()=>{
         saveLista();
-        setOnUpdate(true)               
+        setOnUpdate(true);
     }
     
     const renderItemsFieldsAndTagsEditor = !readOnly && name && vendor;
     const renderItemsTable = listaItemsAndTmpXlsxSheetItems.length > 0 || readOnly ;
+    const renderRemoveObservationModal = removeObservationQueue.length > 0
 
     return (
         <>
@@ -110,7 +113,8 @@ export const ItemsListaEditor:React.FC<ItemsListaEditorProps> = ({updateListaIte
                 createItemSku={createItemSku}
             />
 
-            {onUpdate && <UpdateProductsModal updateContextProducts={updateContextProducts} setOnUpdate={setOnUpdate} initUpdateProducts={initUpdateProducts}/>}
+            {onUpdate && <UpdateProductsModal updateContextProducts={updateContextProducts} cleanQueue={()=>{setOnUpdate(false)}} initUpdateProducts={initUpdateProducts}/>}
+            {renderRemoveObservationModal && <RemoveObservationModal tokens={tokens} updateContextProducts={updateContextProducts} removeObservationQueue={removeObservationQueue} serializedProducts={serializedProducts} setRemoveObservationQueue={setRemoveObservationQueue}/>}
         </>
     )
 }

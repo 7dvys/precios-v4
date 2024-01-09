@@ -12,7 +12,7 @@ import { useContext } from "react";
 import { ContabiliumContext } from "@/contexts/ContabiliumContext";
 
 export const ListasPage:React.FC =()=>{
-    const {fixedProducts,vendors} = useContext(ContabiliumContext);
+    const {fixedProducts} = useContext(ContabiliumContext);
     const inferedListas = inferListas({products:fixedProducts});
     
     const {listas} = useDbListas({inferedListas})
@@ -23,7 +23,7 @@ export const ListasPage:React.FC =()=>{
     if(fixedProducts.main.length === 0 || fixedProducts.secondary.length === 0)
     return <>cargando...</>
 
-    if(listas.length === 0)
+    if(Object.values(listas).length === 0)
     return;
 
     const modificarLink:React.FC<{id:number}> = ({id})=><Link href={'/listas/'+id}> {PenIcon} </Link> 
@@ -34,6 +34,10 @@ export const ListasPage:React.FC =()=>{
         {keyColumn:'type',label:'tipo',searchable:false,filterable:true},
         {keyColumn:'modificar',label:'',searchable:false,filterable:false},
     ]
+
+    Object.values(listas).forEach(lista=>{
+        console.log(lista)
+    })
 
     const items = Object.values(listas).map(({vendor,name,items,type,id})=>({
         id,

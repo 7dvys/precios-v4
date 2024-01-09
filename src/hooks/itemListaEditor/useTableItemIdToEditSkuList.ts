@@ -6,9 +6,11 @@ export const useTableItemIdToEditSkuList = ()=>{
     const addTableItemIdToEditSkuList = (id:number)=>{
         setTableItemIdToEditSkuList(currentTableItemIdToEditSkuList=>{
             const idAlreadyExist = currentTableItemIdToEditSkuList.some(currentId=>id===currentId);
+            
             if(!idAlreadyExist)
             return [...currentTableItemIdToEditSkuList,id];
-            else return currentTableItemIdToEditSkuList;
+            
+            return currentTableItemIdToEditSkuList;
         })
     }
 

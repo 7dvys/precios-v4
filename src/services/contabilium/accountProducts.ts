@@ -111,7 +111,7 @@ export const getAccountProducts = async ({token}:{token:string})=>{
 }
 
 
-const updateProduct = ({product,token}:{product:Product,token:string})=>{
+export const updateAccountProduct = ({product,token}:{product:Product,token:string})=>{
     product.Estado = 'Activo'?'A':'I';
     product.Tipo = 'Producto'?'P':'C';
 
@@ -128,12 +128,12 @@ const updateProduct = ({product,token}:{product:Product,token:string})=>{
     return fetch(endpoint,fetchConfig as RequestInit)
 }
 
-export const updateAccountProducts = async ({token,accountProducts}:{token:string,accountProducts:Product[]})=>{
+export const updateAccountProducts = async ({token,accountProducts}:{token:string,accountProducts:Product[]})=>{    
     if(!accountProducts.length)
     return {};
     
     const updateBlockOfProducts = ({blockProducts}:{blockProducts:Product[]})=>{
-        const blockReqPromises = blockProducts.map(product=>updateProduct({product,token}))
+        const blockReqPromises = blockProducts.map(product=>updateAccountProduct({product,token}))
         return blockReqPromises;
     }
 
@@ -151,7 +151,6 @@ export const updateAccountProducts = async ({token,accountProducts}:{token:strin
         const blockResponses = await Promise.all(blockReqPromises);
         responses.push(...blockResponses);
     }
-
 
     const responsesStatus = responses.reduce((acc,response,index)=>{
         const id = accountProducts[index].Id;
@@ -214,4 +213,8 @@ export const createAccountProduct = async ({token,newProduct}:{token:string,newP
     }catch(error){
         return {error:'system error\n'+error}
     }
+}
+
+export const updateProductStock = ()=>{
+    const endpoint = 'https://rest.contabilium.com/api/inventarios/modificarStock?id=4429&idConcepto=902011&cantidad=25';
 }

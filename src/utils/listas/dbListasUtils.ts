@@ -1,51 +1,60 @@
 import { DATABASE } from "@/constants/database"
 import { indexedDbUtils } from "../indexedDbUtils"
-import {  Lista } from "@/types/Listas"
-import { serializeListaItems } from "./serializeListaItems";
+import {  DbLista, Lista } from "@/types/Listas"
+import { genListaItemsFromXlsxSheets } from "./genListaItemsFromXlsxSheets";
+import { serializeXlsxSheets } from "./serializeXlsxSheets";
+
+const serializeDbListasByName = (dbListas:Record<number,DbLista>)=>{
+    return Object.values(dbListas).reduce((acc,dbLista)=>{
+        acc[dbLista.name] = dbLista;
+        return acc;
+    },{} as Record<string,DbLista>)
+}
 
 export const dbListasUtils =async ()=>{
     const {getAll,add,remove,update} = await indexedDbUtils<Lista>(DATABASE.OBJECTS_STORE.listas);
-
-    const addListaIfNotExist = async ({listas}:{ listas: Lista[]})=>{
-        const currentListas = await getListas()
-        const listasNotInDb = listas.filter(lista=>{
-            const isInCurrentListas = Object.values(currentListas).some(({name})=>name===lista.name);
-            return !isInCurrentListas
-        })
-        if(listasNotInDb.length>0)
-        await add(listasNotInDb);
-    }
-
+    
     const saveListas = async ({listas}:{listas:Lista[]})=>{
         const currentListas = await getListas();
+        const serializedCurrentListas = serializeDbListasByName(currentListas);
+
         listas.forEach(lista=>{
-            const listaInCurrentListas = Object.values(currentListas).find(({name})=>name===lista.name);
-            if(listaInCurrentListas === undefined)
+            const isInCurrentListas = lista.name in serializedCurrentListas;
+            
+            if(!isInCurrentListas)
             return add([lista]);
-            const listaInCurrentListasSerializedItems = serializeListaItems({listaItems:listaInCurrentListas.items})
-            const listasSerializedItems = serializeListaItems({listaItems:lista.items})
+            
+            const listaInCurrentListas = serializedCurrentListas[lista.name];
+            
+            const serializedXlsxSheetsFromLista =  serializeXlsxSheets(lista.xlsxSheets);
+            const serializedXlsxSheetsFromCurrentLista =  serializeXlsxSheets(listaInCurrentListas.xlsxSheets);
 
-            const newListaItems = Object.values({...listaInCurrentListasSerializedItems,...listasSerializedItems}); 
-
-            return update([{...listaInCurrentListas,...lista,items:newListaItems}]);
+            const newXlsxSheets = Object.values({...serializedXlsxSheetsFromCurrentLista,...serializedXlsxSheetsFromLista})
+            
+            const newItems = genListaItemsFromXlsxSheets(newXlsxSheets)
+            
+            const newUpdatedLista:DbLista = {...listaInCurrentListas,...lista,xlsxSheets:newXlsxSheets,items:newItems};
+        
+            return update([newUpdatedLista]);
         })
     }
 
-    const updateListas = async ({listas}:{ listas: Lista[]})=>{
-        const currentListas = await getListas()
-        const listasInDb = listas.map(lista=>{
-            const listaInCurrentListas = Object.values(currentListas).find(({name})=>name===lista.name);
-            if(listaInCurrentListas === undefined)
-            return null
+    // const updateListas = async ({listas}:{ listas: Lista[]})=>{
+    //     const currentListas = await getListas()
 
-            return {...listaInCurrentListas,...lista};
-        })
-        .filter((lista):lista is (Lista & {
-            id: number;
-        })=>lista!== null) 
+    //     const listasInDb = listas.map(lista=>{
+    //         const listaInCurrentListas = Object.values(currentListas).find(({name})=>name===lista.name);
+    //         if(listaInCurrentListas === undefined)
+    //         return null
 
-        await update(listasInDb);
-    }
+    //         return {...listaInCurrentListas,...lista};
+    //     })
+    //     .filter((lista):lista is (Lista & {
+    //         id: number;
+    //     })=>lista!== null) 
+
+    //     await update(listasInDb);
+    // }
 
     const updateWithoutVendorLista = async ({withoutVendorLista}:{withoutVendorLista:Lista})=>{
         await update([{...withoutVendorLista,id:0}])
@@ -71,5 +80,5 @@ export const dbListasUtils =async ()=>{
         return Object.values(currentListas).some((lista)=>lista.name === name);
     }
 
-    return {addListaIfNotExist,updateListas,saveListas,cleanDuplicatedItemsOnDb,getListas,inListas,updateWithoutVendorLista}
+    return {saveListas,cleanDuplicatedItemsOnDb,getListas,inListas,updateWithoutVendorLista}
 }

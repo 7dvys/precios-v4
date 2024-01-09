@@ -25,7 +25,7 @@ export type TableItemIdentifier = {
 
 export type TableGroupFunction = {
   label: string;
-  functionHandler: (selectedItems:number[])=> void;
+  functionHandler: (selectedItems:number[],clearSelections:()=>void)=> void;
 };
 
 export type TablePanelInformation = {

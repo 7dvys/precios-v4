@@ -18,8 +18,12 @@ export const ContabiliumProvider = ({children,tokens}:{children:React.ReactNode,
     const [vendors,setVendors] = useState<Vendor[]>([]);
     const [fixedProducts,setFixedProducts] = useState<Products>({main:[],secondary:[]});
     const [rubrosWithSubRubrosPerAccount,setRubrosWithSubRubrosPerAccount] = useState<RubrosWithSubRubrosPerAccount>({main:[],secondary:[]});
-    
+    const [online,setOnline] = useState<boolean>(true)
+        
     const initContabiliumProvider = async ()=>{
+        if(!navigator.onLine)
+        return setOnline(false);
+
         const [vendors,products] = await Promise.all([getVendors({tokens}),getProducts({tokens})])
         const fixedProducts = fixProducts({products,vendors})
         const rubrosWithSubRubrosPerAccount = await getRubrosWithSubRubros({tokens});     
@@ -30,7 +34,37 @@ export const ContabiliumProvider = ({children,tokens}:{children:React.ReactNode,
 
     useEffect(()=>{
         initContabiliumProvider();
-    },[])
+    },[online])
+
+    useEffect(() => {       
+        const handleOnline = () => {
+            setOnline(true);
+        };
+    
+        const handleOffline = () => {
+            setOnline(false);
+        };
+    
+        // Agrega manejadores de eventos
+        window.addEventListener('online', handleOnline);
+        window.addEventListener('offline', handleOffline);
+    
+        // Limpia los manejadores de eventos cuando el componente se desmonta
+        return () => {
+            window.removeEventListener('online', handleOnline);
+            window.removeEventListener('offline', handleOffline);
+        };
+    }, []);
+
+    if(!online)
+    return (
+        <Modal>
+            <div className={`${containerStyles.container}`}>
+                <h3>Sin conexion a internet...</h3>
+                <p>vuelve a intentarlo mas tarde.</p>
+            </div>
+        </Modal>
+    )
 
     const updateProducts = ({newProducts}:{newProducts:Products})=>{
         const serializedProducts = serializeProducts({products:fixedProducts});

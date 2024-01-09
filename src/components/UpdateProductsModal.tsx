@@ -1,6 +1,6 @@
-import { Dispatch, SetStateAction, useEffect, useState } from "react"
-import { Modal } from "../Modal";
-import { LoadingRing } from "../LoadingRing";
+import { useEffect, useState } from "react"
+import { Modal } from "./Modal";
+import { LoadingRing } from "./LoadingRing";
 import ContainerStyles from '@/styles/containers.module.css'
 import { Products } from "@/types/Products";
 import { AccountType } from "@/types/Config";
@@ -16,12 +16,12 @@ export type UpdatedProductStatus = {
 }
 
 export const UpdateProductsModal:React.FC<{
-    setOnUpdate:Dispatch<SetStateAction<boolean>>,
+    cleanQueue:()=>void;
     initUpdateProducts:()=>false|Promise<UpdatedProductStatus>;
     updateContextProducts: ({ newProducts }: {
         newProducts: Products;
     }) => void
-}> = ({setOnUpdate,initUpdateProducts,updateContextProducts})=>{
+}> = ({cleanQueue,initUpdateProducts,updateContextProducts})=>{
 
     const [updateProductsStatus,setUpdateProductsStatus] = useState<UpdatedProductStatus|undefined>(undefined);
 
@@ -29,7 +29,7 @@ export const UpdateProductsModal:React.FC<{
         const updateProductsStatus = await initUpdateProducts()
 
         if(updateProductsStatus === false)
-        return setOnUpdate(false);
+        return cleanQueue();
     
         setUpdateProductsStatus(updateProductsStatus);
 
@@ -72,9 +72,9 @@ export const UpdateProductsModal:React.FC<{
                     <h3>Productos actualizados.</h3>
                     <p>Se han actualizado:
                     <br/>Principal:{Object.values(updateProductsStatus.main).length}
-                    <br />Secundaria:{Object.values(updateProductsStatus.secondary).length}
+                    <br/>Secundaria:{Object.values(updateProductsStatus.secondary).length}
                     </p>
-                <button onClick={()=>{setOnUpdate(false)}}>listo</button>
+                <button onClick={cleanQueue}>listo</button>
                 </div>
             </div>
         </Modal>

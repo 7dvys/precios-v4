@@ -12,6 +12,8 @@ import { changeXlsxSheetsCosts } from "@/utils/listas/changeXlsxSheetsCosts";
 import { isClient } from "@/constants/isClient";
 import { changeItemCostoFromXlsxSheets } from "@/utils/listas/changeItemFromXlsxSheets";
 import { updateItemFromXlsxSheets } from "@/utils/listas/updateItemFromXlsxSheets";
+import { genListaItemsFromXlsxSheets } from "@/utils/listas/genListaItemsFromXlsxSheets";
+import { serializeXlsxSheets } from "@/utils/listas/serializeXlsxSheets";
 
 export const useListas = ({initialLista}:UseListasProps)=>{
 
@@ -47,6 +49,10 @@ export const useListas = ({initialLista}:UseListasProps)=>{
         setLista(currentLista=>({...currentLista,name,vendor,vendorId,type}))
     }
 
+    const setType = ({type}:{type:AccountType|'both'})=>{
+        setLista(currentLista=>({...currentLista,type}))
+    }
+
     const saveLista = async ()=>{
         if(!isClient)
         return;
@@ -56,17 +62,16 @@ export const useListas = ({initialLista}:UseListasProps)=>{
     }
 
     const addSheet = ({xlsxSheet}:{xlsxSheet:XlsxSheet})=>{
-        const {fileName,sheetName} = xlsxSheet;
-
         setLista(currentLista=>{
             const currentXlsxSheets = currentLista.xlsxSheets;
-            const currentXlsxSheetsWithoutCurrentXlsxSheet = currentXlsxSheets.filter(xlsxSheet=>{
-                const isSameFileName = xlsxSheet.fileName === fileName;
-                const isSameSheetName = xlsxSheet.sheetName === sheetName;
-                return (!isSameFileName && !isSameSheetName);
-            })
-            const newXlsxSheets = [...currentXlsxSheetsWithoutCurrentXlsxSheet,xlsxSheet];
+
+            const serializedCurrentXlsxSheets = serializeXlsxSheets(currentXlsxSheets);
+            const serializedNewXlsxSheet = serializeXlsxSheets([xlsxSheet]);
+            const serializedNewXlsxSheets = {...serializedCurrentXlsxSheets,...serializedNewXlsxSheet};
+            const newXlsxSheets = Object.values(serializedNewXlsxSheets);
+
             const newLista:Lista = {...currentLista,xlsxSheets:newXlsxSheets};
+            console.log(newLista)
             return newLista;
         })
     }
@@ -74,15 +79,7 @@ export const useListas = ({initialLista}:UseListasProps)=>{
     const setItems = ()=>{
         const {xlsxSheets} = lista;
     
-        const xlsxListaItemsFromXlsxSheets = xlsxSheets.map(({items})=>(items));
-    
-        const items = xlsxListaItemsFromXlsxSheets.reduce((acc,listaItems)=>{
-            const listaItemsCodigos = listaItems.map(({codigo})=>codigo)
-            const accWithoutCurrentListaItemsCodigos = acc.filter((accItem)=>(
-                !listaItemsCodigos.some(codigo=>codigo===accItem.codigo))
-            )
-            return [...listaItems,...accWithoutCurrentListaItemsCodigos];
-        },[] as ListaItem[])
+       const items = genListaItemsFromXlsxSheets(xlsxSheets);
 
         setLista(currentLista=>{
             const newLista:Lista = {...currentLista,items}
@@ -153,5 +150,5 @@ export const useListas = ({initialLista}:UseListasProps)=>{
 
     useEffect(setItems,[lista.xlsxSheets])
     
-    return {lista,setNameVendorAndType,addSheet,saveLista,updateListaItem,changeListaItemCosto,changeListaAllCosts,removeSheet,removeListaItem,removeListaItemSku,addListaItemSku,addTag,removeTag};
+    return {lista,setType,setNameVendorAndType,addSheet,saveLista,updateListaItem,changeListaItemCosto,changeListaAllCosts,removeSheet,removeListaItem,removeListaItemSku,addListaItemSku,addTag,removeTag};
 }
