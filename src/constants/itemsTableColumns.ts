@@ -7,7 +7,8 @@ export const itemsTableColumns = [
     {keyColumn:'tagsId',label:'tags',searchable:false,filterable:true,visible:false},
     {keyColumn:'rubro',label:'rubro',searchable:false,filterable:true,visible:false},
     {keyColumn:'subRubro',label:'subRubro',searchable:false,filterable:true,visible:false},
-    
+    {keyColumn:'stock',label:'stock',searchable:false,filterable:true,visible:false},
+    {keyColumn:'enlazadoMl',label:'enlazado',searchable:false,filterable:true,visible:false},
 
     {keyColumn:'item',label:'item',searchable:false,filterable:false},
     {keyColumn:'detalles',label:'detalles',searchable:false,filterable:false},

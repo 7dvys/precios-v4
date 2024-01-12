@@ -12,10 +12,12 @@ import { useEffect, useState } from "react"
 import containerStyles from '@/styles/containers.module.css'
 import { serializeProducts } from "@/utils/serializeProducts"
 import { usePathname } from "next/navigation"
+import { getDeposits } from "@/utils/contabilium/getDeposits"
 
 export const ContabiliumProvider = ({children,tokens}:{children:React.ReactNode,tokens:Tokens})=>{
     const pathname = usePathname()
     const [vendors,setVendors] = useState<Vendor[]>([]);
+    const [deposits,setDeposits] = useState<any>([]);
     const [fixedProducts,setFixedProducts] = useState<Products>({main:[],secondary:[]});
     const [rubrosWithSubRubrosPerAccount,setRubrosWithSubRubrosPerAccount] = useState<RubrosWithSubRubrosPerAccount>({main:[],secondary:[]});
     const [online,setOnline] = useState<boolean>(true)
@@ -24,13 +26,16 @@ export const ContabiliumProvider = ({children,tokens}:{children:React.ReactNode,
         if(!navigator.onLine)
         return setOnline(false);
 
-        const [vendors,products] = await Promise.all([getVendors({tokens}),getProducts({tokens})])
+        const [vendors,products,deposits] = await Promise.all([getVendors({tokens}),getProducts({tokens}),getDeposits({tokens})])
         const fixedProducts = fixProducts({products,vendors})
         const rubrosWithSubRubrosPerAccount = await getRubrosWithSubRubros({tokens});     
         setFixedProducts(fixedProducts);
         setVendors(vendors);
+        setDeposits(deposits);
         setRubrosWithSubRubrosPerAccount(rubrosWithSubRubrosPerAccount);
     }
+
+    // console.log(deposits)
 
     useEffect(()=>{
         initContabiliumProvider();
@@ -93,6 +98,7 @@ export const ContabiliumProvider = ({children,tokens}:{children:React.ReactNode,
         rubrosWithSubRubrosPerAccount,
         tokens,
         fixedProducts,
+        deposits,
         pullProducts:()=>{},
         updateProducts,
         vendors,

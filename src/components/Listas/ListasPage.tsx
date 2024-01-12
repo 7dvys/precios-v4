@@ -35,10 +35,6 @@ export const ListasPage:React.FC =()=>{
         {keyColumn:'modificar',label:'',searchable:false,filterable:false},
     ]
 
-    Object.values(listas).forEach(lista=>{
-        console.log(lista)
-    })
-
     const items = Object.values(listas).map(({vendor,name,items,type,id})=>({
         id,
         name,

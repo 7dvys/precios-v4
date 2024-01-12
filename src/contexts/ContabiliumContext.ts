@@ -1,4 +1,4 @@
-import { RubrosWithSubRubrosPerAccount, Tokens, Vendor } from "@/types/Contabilium"
+import { Deposits, RubrosWithSubRubrosPerAccount, Tokens, Vendor } from "@/types/Contabilium"
 import { Products } from "@/types/Products"
 import { createContext } from "react"
 
@@ -11,6 +11,7 @@ type ContabiliumProviderProps = {
     pullVendors:()=>void,
     updateVendors:(newVendors:Vendor[])=>void,
     rubrosWithSubRubrosPerAccount:RubrosWithSubRubrosPerAccount,
+    deposits:Deposits;
 }
 
 export const ContabiliumContext = createContext<ContabiliumProviderProps>({
@@ -21,5 +22,6 @@ export const ContabiliumContext = createContext<ContabiliumProviderProps>({
     updateProducts:()=>{},
     vendors:[],
     pullVendors:()=>{},
-    updateVendors:()=>{}
+    updateVendors:()=>{},
+    deposits:{main:[],secondary:[]},
 })

@@ -1,10 +1,10 @@
 import containerStyles from '@/styles/containers.module.css'
 import { AccountType } from '@/types/Config';
-import { Product, RubrosWithSubRubrosPerAccount, Tokens } from '@/types/Contabilium';
+import { Deposits, Product, RubrosWithSubRubrosPerAccount, Tokens } from '@/types/Contabilium';
 import { ListaItem, Tags } from '@/types/Listas';
 import { Products, SerializedProducts } from '@/types/Products';
 import { AddListaItemSku, RemoveListaItemSku, UpdateListaItem } from '@/types/UseListasTypes';
-import { useRef, useState } from "react"
+import { Dispatch, SetStateAction, useRef, useState } from "react"
 import { ListaCbItemLabels, ListaCbItemSuggestLabels } from './SkuEditorItemSkuLabels';
 import { SkuEditorCreateSku } from './SkuEditorCreateSku';
 import { populateDefaultProduct } from '@/utils/contabilium/populateDefaultProduct';
@@ -17,6 +17,7 @@ import { Options } from '../Options';
 import { Modal } from '../Modal';
 
 export type ItemEditorModal = {
+    deposits:Deposits;
     serializedProducts:SerializedProducts;
     clearTableItemIdToEditSkuList:()=>void
     cotizaciones:Cotizaciones,
@@ -31,10 +32,17 @@ export type ItemEditorModal = {
     getCbItemByCodigo:({account,codigo}:{account:AccountType,codigo:string})=>Promise<Product|{error:string}>
     createItemSku:(params:{product:Product,account:AccountType,codigo:string})=>void;
     removeFirstTableItemIdToEdit:()=>void;
+    setRemoveObservationQueue: Dispatch<SetStateAction<{
+        sku: string;
+        account: AccountType;
+    }[]>>
 }
 
 
 export const ItemEditorModal:React.FC<ItemEditorModal> = ({
+    
+    setRemoveObservationQueue,
+    deposits,
     clearTableItemIdToEditSkuList,
     updateListaItem,
     serializedProducts,
@@ -54,7 +62,6 @@ export const ItemEditorModal:React.FC<ItemEditorModal> = ({
     const {codigo,titulo,cbItemSkus,costo,rentabilidad,iva,tagsId,cotizacion} = listaItem;
     const {price,finalPrice,finalCost,fixedCoeficient,porcentualCoeficient} = genFinalCostPriceAndFinalPrice({tags,tagsId,costo,rentabilidad,iva})
     const finalPriceDetailsTitle = `costo final: ${finalCost.toFixed(2)} (costo ${costo.toFixed(2)} + tag fijo ${fixedCoeficient.toFixed(2)} porcentual ${porcentualCoeficient.toFixed(2)}%)\nprecio: ${price.toFixed(2)} (costo final ${finalCost.toFixed(2)} + rentabilidad ${rentabilidad}%)\nprecio final (precio ${price.toFixed(2)} + iva ${iva}%)`
-
 
     const cotizacionesOptionList:Option[] = Object.entries(cotizaciones).map(([name,exchangeRate]:[string,number])=>({value:name,title:`${name} - ${exchangeRate}`}))
     
@@ -124,7 +131,7 @@ export const ItemEditorModal:React.FC<ItemEditorModal> = ({
         const {sku,account} = getFormValues();
 
         const newProductTitle = (newProductTitleRef.current as HTMLInputElement).value;
-        const newProductStock = Number((newProductStockRef.current as HTMLInputElement).value);
+        // const newProductStock = Number((newProductStockRef.current as HTMLInputElement).value);
 
         const skuAlreadyExistOnProducts = Object.keys(serializedProducts[account]).some(id=>id.toUpperCase() === sku.toUpperCase());
 
@@ -137,8 +144,8 @@ export const ItemEditorModal:React.FC<ItemEditorModal> = ({
         if(newProductTitle.length === 0)
         return alert('El titulo no puede estar vacio.');
 
-        if(isNaN(newProductStock) || newProductStock <= 0)
-        return alert('El stock debe ser un numero mayor a 0.')
+        // if(isNaN(newProductStock))
+        // return alert('El stock debe ser un numero.')
     
         const idRubro = rubrosWithSubRubros[account][0].Id.toString();
         
@@ -155,12 +162,14 @@ export const ItemEditorModal:React.FC<ItemEditorModal> = ({
             Iva:iva, 
             Estado:'A', 
             IdRubro:idRubro, 
-            Stock:newProductStock
+            // Stock:newProductStock
+            Stock:0,
         };
 
         const newProduct = populateDefaultProduct(productValues);
 
         const createdProductId = await createAccountProduct({newProduct,token:tokens[account]});
+
         if('error' in createdProductId)
         return alert(`error al crear el producto ${newProductTitle}\nerror:${createdProductId.error}`);
     
@@ -199,6 +208,12 @@ export const ItemEditorModal:React.FC<ItemEditorModal> = ({
         acc[account].push(...suggestions);
         return acc
     },{main:[],secondary:[]} as Record<AccountType,Product[]>)
+    
+    const removeItemSkuHandler = ( params: { codigo: string; sku: string; account: AccountType; })=>{
+        const {sku,account} = params;
+        removeItemSku(params)
+        setRemoveObservationQueue([{sku,account}])
+    }
  
     const renderListaItemCbProducts = listaItemCbProducts.main.length > 0 || listaItemCbProducts.secondary.length > 0
     const renderListaItemCbProductsSuggestions = listaItemCbProductsSuggestions.main.length > 0 || listaItemCbProductsSuggestions.secondary.length > 0
@@ -206,7 +221,7 @@ export const ItemEditorModal:React.FC<ItemEditorModal> = ({
     const skuRef = useRef<HTMLInputElement>(null);
     const accountRef = useRef<HTMLSelectElement>(null);
     const newProductTitleRef = useRef<HTMLInputElement>(null)
-    const newProductStockRef = useRef<HTMLInputElement>(null)
+    // const newProductStockRef = useRef<HTMLInputElement>(null)
     const finalCostRef = useRef<HTMLInputElement>(null);
     const profitRef = useRef<HTMLInputElement>(null);
     const ivaRef = useRef<HTMLInputElement>(null);
@@ -248,7 +263,7 @@ export const ItemEditorModal:React.FC<ItemEditorModal> = ({
 
                     <div className='flex-row flex-gap-m flex-grow'>
                         <LabelWrapper labelText='tags'>
-                            <input ref={tagsRef} type="text" defaultValue={Object.keys(tags).join(',')} key={codigo} placeholder='tags separados por comas' />
+                            <input ref={tagsRef} type="text" defaultValue={tagsId.join(',')} key={codigo} placeholder='tags separados por comas' />
                         </LabelWrapper>
                         <LabelWrapper labelText='cotizacion'>
                             <select ref={exchRateRef} name="cotizacion" key={codigo} defaultValue={cotizacion}>
@@ -277,12 +292,12 @@ export const ItemEditorModal:React.FC<ItemEditorModal> = ({
                     {EditorButtons}
                 </div>
 
-                {createItem && <SkuEditorCreateSku newProductStockRef={newProductStockRef} newProductTitleRef={newProductTitleRef} title={titulo} codigo={codigo}/>}
+                {createItem && <SkuEditorCreateSku newProductTitleRef={newProductTitleRef} title={titulo} codigo={codigo}/>}
 
                 {renderListaItemCbProducts && <div>
                     <h4>Items</h4>
                     {/* <SkuEditorItemSkuLabels listaItemCodigo={codigo} listaItemCbProducts={listaItemCbProducts} removeItemSku={removeItemSku} addItemSku={undefined}/> */}
-                    <ListaCbItemLabels listaItemCodigo={codigo} listaItemCbProducts={listaItemCbProducts} removeItemSku={removeItemSku} />
+                    <ListaCbItemLabels deposits={deposits} listaItemCodigo={codigo} listaItemCbProducts={listaItemCbProducts} removeItemSku={removeItemSkuHandler} />
                 </div>}
 
                 {renderListaItemCbProductsSuggestions && <div>

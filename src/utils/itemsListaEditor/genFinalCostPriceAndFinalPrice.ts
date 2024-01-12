@@ -11,8 +11,5 @@ export const genFinalCostPriceAndFinalPrice = ({tags,tagsId,costo,rentabilidad,i
 
     const porcentualCoeficient = (porcentualCoeficientFactor-1)*100;
 
-    if(typeof finalCost !== 'number')
-    console.log(typeof costo, typeof porcentualCoeficientFactor, typeof fixedCoeficient,fixedCoeficient)
-
     return {finalCost,price,finalPrice,fixedCoeficient,porcentualCoeficient}
 }

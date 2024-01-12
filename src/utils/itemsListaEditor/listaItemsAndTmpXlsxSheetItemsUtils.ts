@@ -23,7 +23,7 @@ export const listaItemsAndTmpXlsxSheetItemsUtils = ({listaItems,tmpXlsxSheetItem
     const removeItem = ({codigo}:{codigo:string})=>{
         removeListaItem({codigo});
         removeTmpXlsxSheetItem({codigo});
-    }
+    } 
 
     const updateItem = (params:{codigo:string,newItemValues:ListaItemOptionalValues})=>{
         updateListaItem(params);

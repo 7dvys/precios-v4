@@ -1,6 +1,6 @@
 import { Dispatch, SetStateAction } from "react";
 import { Products, SerializedProducts } from "./Products";
-import { Product, RubrosWithSubRubrosPerAccount, Tokens, Vendor } from "./Contabilium";
+import { Deposits, Product, RubrosWithSubRubrosPerAccount, Tokens, Vendor } from "./Contabilium";
 import { Cotizaciones } from "./Cotizaciones";
 import { Lista, ListaItem, Tag, Tags } from "./Listas";
 import * as XLSX from 'xlsx';
@@ -96,6 +96,7 @@ export type FormatedJsonSheetItem = {
 }
 
 export type ItemEditorProps = {
+    deposits:Deposits
     clearTableItemIdToEditSkuList:()=>void;
     serializedProducts:SerializedProducts;
     serializedListaItems:Record<string,ListaItem>;
@@ -113,6 +114,10 @@ export type ItemEditorProps = {
     addItemSku:AddListaItemSku
     getCbItemByCodigo:({account,codigo}:{account:AccountType,codigo:string})=>Promise<Product|{error:string}>
     createItemSku:(params:{product:Product,account:AccountType,codigo:string})=>void;
+    setRemoveObservationQueue:Dispatch<SetStateAction<{
+        sku: string;
+        account: AccountType;
+    }[]>>
 }
 
 

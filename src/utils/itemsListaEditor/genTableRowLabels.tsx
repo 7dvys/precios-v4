@@ -1,5 +1,7 @@
 import { AccountType } from "@/types/Config"
 import { decodeObservaciones } from "../decodeObservaciones"
+import { DecodedObject } from "../simpleDataSerializer"
+import { ObservacionesWithoutTags } from "@/types/Contabilium"
 
 export const genSheetItemRow = ({fixedCoeficient,porcentualCoeficientFactor,profit,iva,cost,finalCost,cotizacion,tagsId,titulo,sheetItemCodigo,accountTypeFromSkus}:{
     titulo:string|null,
@@ -45,7 +47,7 @@ export const genSheetItemRow = ({fixedCoeficient,porcentualCoeficientFactor,prof
     return {itemLabel,detallesLabel,precioFinalLabel}
 }
 
-export const genCbItemRow = ({sheetItemCodigo,rubro,cbItemCosto,cbItemIva,subRubro,cbItemStock,cbItemRentabilidad,cbItemFinal,cbItemObservaciones,titulo,sku,account}:{
+export const genCbItemRow = ({sheetItemCodigo,rubro,cbItemCosto,cbItemIva,subRubro,cbItemStock,cbItemRentabilidad,cbItemFinal,cbItemDecodedObservaciones,titulo,sku,account}:{
     sheetItemCodigo:string,
     titulo:string,
     sku:string,
@@ -55,15 +57,14 @@ export const genCbItemRow = ({sheetItemCodigo,rubro,cbItemCosto,cbItemIva,subRub
     cbItemRentabilidad:number,
     cbItemIva:number,
     cbItemStock:number,
-    cbItemObservaciones:string,
+    cbItemDecodedObservaciones:DecodedObject<ObservacionesWithoutTags>|null,
     rubro:string,
     subRubro:string,
 })=>{
-    const observaciones = decodeObservaciones(cbItemObservaciones) 
-    const currentVendor = observaciones !== null? observaciones.proveedor[0]:null;   
-    const currentTags = observaciones !== null? observaciones.tagsId:null;   
-    const currentCotizacion = observaciones !== null?observaciones.cotizacion[0]:null;
-    const currentEnlazado = observaciones !== null?observaciones.enlazadoMl[0]:'sin revisar';
+    const currentVendor = cbItemDecodedObservaciones !== null? cbItemDecodedObservaciones.proveedor[0]:null;   
+    const currentTags = cbItemDecodedObservaciones !== null? cbItemDecodedObservaciones.tagsId:null;   
+    const currentCotizacion = cbItemDecodedObservaciones !== null?cbItemDecodedObservaciones.cotizacion[0]:null;
+    const currentEnlazado = cbItemDecodedObservaciones !== null?cbItemDecodedObservaciones.enlazadoMl[0]:'sin revisar';
     
     const itemLabel = (
         <div className="flex-column">

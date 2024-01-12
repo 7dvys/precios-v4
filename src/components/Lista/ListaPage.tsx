@@ -33,7 +33,6 @@ export const ListaPage:React.FC<ListaPageProps> =  ({listaId})=>{
         initCurrentLista();
     },[])
 
-    console.log(lista)
 
     if(!isClient)
     return;

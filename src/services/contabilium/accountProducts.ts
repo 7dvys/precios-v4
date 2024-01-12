@@ -1,4 +1,4 @@
-import { Product } from "@/types/Contabilium";
+import { AccountDeposits, Deposit, Deposits, Product, ProductStockByDeposits, StockByDeposit } from "@/types/Contabilium";
 // import { revalidateTag } from "next/cache";
 
 type GetProductsDeps = {config:RequestInit,page:number,remainingPages:number,location:string};
@@ -110,6 +110,42 @@ export const getAccountProducts = async ({token}:{token:string})=>{
     }
 }
 
+const getAccountProductStockByDeposit = async ({depositId,sku,token,depositName}:{depositName:string,depositId:number,sku:string,token:string}):Promise<{[depositName:string]:StockByDeposit|null}> =>{
+    const location = `https://rest.contabilium.com/api/inventarios/getStockByDeposito?id=${depositId}&codigo=${sku}`;
+    const config:RequestInit = {
+        method:'GET',
+        headers:{
+            'Content-Type':'application/json',
+            'Authorization':'Bearer '+token,
+        },
+        cache:'no-store',
+    }
+
+    const response = await fetch(location,config);
+    if(!response.ok)
+    return {[depositName]:null}
+
+
+    const responseJson = await response.json();
+    
+    const stockByDeposit = responseJson.Items[0];
+
+    return {[depositName]:stockByDeposit}
+}
+
+export const getAccountProductStockByDeposits = async ({accountDeposits,sku,token}:{accountDeposits:AccountDeposits,sku:string,token:string}):Promise<ProductStockByDeposits> =>{
+    const productStockByDepositPromises = accountDeposits.map(({Id:depositId,Nombre:depositName})=>{
+        return getAccountProductStockByDeposit({depositId,sku,token,depositName});
+    })
+
+    const productStockByDeposits = await Promise.all(productStockByDepositPromises);
+    return productStockByDeposits.reduce((acc,productStockByDeposit)=>{
+        const [depositName,stockByDeposit] = Object.entries(productStockByDeposit)[0]
+        acc[depositName] = stockByDeposit;
+        return acc
+    },{} as ProductStockByDeposits)
+
+} 
 
 export const updateAccountProduct = ({product,token}:{product:Product,token:string})=>{
     product.Estado = 'Activo'?'A':'I';
@@ -215,6 +251,49 @@ export const createAccountProduct = async ({token,newProduct}:{token:string,newP
     }
 }
 
-export const updateProductStock = ()=>{
-    const endpoint = 'https://rest.contabilium.com/api/inventarios/modificarStock?id=4429&idConcepto=902011&cantidad=25';
+const updateAccountProductStockByDeposit = async ({token,depositId,productId,newStock}:{token:string,depositId:number,productId:number,newStock:number})=>{
+    const endpoint = `https://rest.contabilium.com/api/inventarios/modificarStock?id=${depositId}&idConcepto=${productId}&cantidad=${newStock}`;
+    const options:RequestInit = {
+        method: 'POST',
+        headers:{
+            'Content-Type':'application/json',
+            'Authorization':'Bearer '+token,
+        },
+        cache:'no-store',
+    };
+    const response = await fetch(endpoint,options);
+
+    // const responseJson = await response.json();
+    // console.log(responseJson)
+    // console.log(response.statusText)
+    // const text = await response.text()
+    // console.log({text,depositId,newStock,productId})
+
+    return response.ok;
+}
+
+export const updateAccountProductStock = async ({accountDeposits,productId,productStockByDeposits,token}:{accountDeposits:Deposit[],productId:number,productStockByDeposits:ProductStockByDeposits,token:string})=>{
+    if(productStockByDeposits === null)
+    return false;
+
+    const updateAccountProductStockPromises = Object.entries(productStockByDeposits).map(([depositName,stockByDeposit])=>{
+        if(stockByDeposit === null)
+        return null
+
+        const deposit = accountDeposits.find(deposit=>deposit.Nombre===depositName);
+
+        if(deposit === undefined)
+        return;
+
+        return updateAccountProductStockByDeposit({token,depositId:deposit.Id,productId,newStock:stockByDeposit.StockConReservas})
+    })
+
+    const responses = await Promise.all(updateAccountProductStockPromises)
+    return !responses.some(response=>{
+        if(response === null)
+        return true;
+
+        return !response;
+    })
+    
 }

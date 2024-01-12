@@ -7,6 +7,7 @@ import { Product, RubrosWithSubRubrosPerAccount } from "@/types/Contabilium";
 import { genCbItemRow, genSheetItemRow } from "./genTableRowLabels";
 import { AccountType } from "@/types/Config";
 import { getTagsCoeficients } from "./getTagsCoeficients";
+import { decodeObservaciones } from "../decodeObservaciones";
 
 export const getTableItemsAndItemsDictionary = ({products,items,tags,rubrosWithSubRubros}:{products:Products,items:ListaItem[],tags:Tags,rubrosWithSubRubros:RubrosWithSubRubrosPerAccount})=>{
     const serializedProducts = serializeProducts({products});
@@ -37,6 +38,8 @@ export const getTableItemsAndItemsDictionary = ({products,items,tags,rubrosWithS
             cbTitulos:[] as string[],
             rubro:[] as string [],
             subRubro:[] as string[],
+            stock:[] as string[],
+            enlazadoMl:[] as string[],
         }
 
         addToItemsDictionary({codigo:codigo,sku:null,index:index++,account:null});
@@ -55,11 +58,19 @@ export const getTableItemsAndItemsDictionary = ({products,items,tags,rubrosWithS
                     Rentabilidad:rentabilidad,
                     Observaciones:observaciones,
                     IdRubro:cbIdRubro,
-                    IdSubrubro:cbSubRubro
+                    IdSubrubro:cbSubRubro,
                 }:Product = serializedProducts[account as AccountType][sku];
+
+                const decodedObservaciones = decodeObservaciones(observaciones) 
+
 
                 const rubro = rubrosWithSubRubros[(account as AccountType)].find(({Id})=>Id===Number(cbIdRubro));
                 const subRubro = rubro?.SubRubros.find(({Id})=>Id===Number(cbSubRubro))
+
+                const rubroLabel = rubro?.Nombre || 'sin rubro';
+                const subRubroLabel = subRubro?.Nombre || 'sin subrubro'
+                const stockLabel = stock>0?'con stock':'sin stock';
+                const enlazadoMlLabel = decodedObservaciones!==null?decodedObservaciones.enlazadoMl[0]:'sin revisar';
 
                 const {itemLabel,detallesLabel,precioFinalLabel} = genCbItemRow({
                     sheetItemCodigo: codigo,    
@@ -71,10 +82,11 @@ export const getTableItemsAndItemsDictionary = ({products,items,tags,rubrosWithS
                     cbItemRentabilidad: rentabilidad,
                     cbItemIva: iva,
                     cbItemStock: stock,
-                    cbItemObservaciones:observaciones,
-                    rubro:rubro?.Nombre || 'sin rubro',
-                    subRubro:subRubro?.Nombre || 'sin subrubro'
+                    cbItemDecodedObservaciones:decodedObservaciones,
+                    rubro:rubroLabel,
+                    subRubro:subRubroLabel,
                 })
+
                 
                 const cbItemRow ={
                     id:index,
@@ -82,19 +94,31 @@ export const getTableItemsAndItemsDictionary = ({products,items,tags,rubrosWithS
                     cotizacion,
                     cbItemSkus:accountTypeFromSkus,
                     tagsId:tagsId.join(',') || 'sin tags',
-                    rubro:rubro?.Nombre || 'sin rubro',
-                    subRubro:subRubro?.Nombre || 'sin subrubro',
+                    rubro:rubroLabel,
+                    subRubro:subRubroLabel,
                     item:itemLabel,
                     detalles:detallesLabel,
                     precioFinal:precioFinalLabel,
                     cbTitulos:titulo,
+                    stock:stockLabel,
+                    enlazadoMl:enlazadoMlLabel,
                 }
 
                 addToItemsDictionary({codigo:codigo,sku,index:index++,account:account as AccountType})
 
-                sheetItemRow.rubro.push(rubro?.Nombre || 'sin rubro')
-                sheetItemRow.subRubro.push(subRubro?.Nombre || 'sin subrubro')
+                if(!sheetItemRow.rubro.some(current=>current === rubroLabel))
+                sheetItemRow.rubro.push(rubroLabel)
+
+                if(!sheetItemRow.subRubro.some(current=>current === subRubroLabel))
+                sheetItemRow.subRubro.push(subRubroLabel)
+
                 sheetItemRow.cbTitulos.push(titulo);
+
+                if(!sheetItemRow.stock.some(current=>current === stockLabel))
+                sheetItemRow.stock.push(stockLabel);
+
+                if(!sheetItemRow.enlazadoMl.some(current=>current === enlazadoMlLabel))
+                sheetItemRow.enlazadoMl.push(enlazadoMlLabel);
                 
                 return cbItemRow;
             })

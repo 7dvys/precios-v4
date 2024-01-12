@@ -27,7 +27,7 @@ import { RemoveObservationModal } from "./RemoveObservationModal";
 export const ItemsListaEditor:React.FC<ItemsListaEditorProps> = ({updateListaItem,lista,addSheet,removeSheet,addTag,removeTag,removeListaItem,saveLista,removeListaItemSku,addListaItemSku,readOnly})=>{
     const [onUpdate,setOnUpdate] = useState<boolean>(false);
     const [cotizaciones,setCotizaciones] = useState<Cotizaciones|undefined>(undefined)
-    const {fixedProducts,rubrosWithSubRubrosPerAccount,tokens,updateProducts:updateContextProducts} = useContext(ContabiliumContext);
+    const {fixedProducts,rubrosWithSubRubrosPerAccount,tokens,updateProducts:updateContextProducts,deposits} = useContext(ContabiliumContext);
 
     const initCotizaciones = async ()=>{
         const {getCotizaciones} = await cotizacionesUtils({products:fixedProducts});
@@ -44,7 +44,7 @@ export const ItemsListaEditor:React.FC<ItemsListaEditorProps> = ({updateListaIte
         
     const {tmpXlsxSheet,addTmpXlsxSheetToLista,setTmpXlsxSheet,removeTmpXlsxSheet,removeTmpXlsxSheetItem,updateTmpXlsxSheetItem,removeTmpXlsxSheetItemSku,addTmpXlsxSheetItemSku} = useTmpXlsxSheet({addSheet})
 
-    const {listaItemsAndTmpXlsxSheetItems,removeItem,removeItemSku,addItemSku} = listaItemsAndTmpXlsxSheetItemsUtils({listaItems:items,addListaItemSku,removeListaItem,removeListaItemSku,removeTmpXlsxSheetItem,updateListaItem,updateTmpXlsxSheetItem,removeTmpXlsxSheetItemSku,addTmpXlsxSheetItemSku,tmpXlsxSheetItems:tmpXlsxSheet.items})
+    const {listaItemsAndTmpXlsxSheetItems,removeItem,removeItemSku,addItemSku,updateItem} = listaItemsAndTmpXlsxSheetItemsUtils({listaItems:items,addListaItemSku,removeListaItem,removeListaItemSku,removeTmpXlsxSheetItem,updateListaItem,updateTmpXlsxSheetItem,removeTmpXlsxSheetItemSku,addTmpXlsxSheetItemSku,tmpXlsxSheetItems:tmpXlsxSheet.items})
     
     const serializedListaItems = serializeListaItems({listaItems:listaItemsAndTmpXlsxSheetItems});
     const serializedProducts = serializeProducts({products:fixedProducts});
@@ -79,6 +79,9 @@ export const ItemsListaEditor:React.FC<ItemsListaEditorProps> = ({updateListaIte
     }
 
     const finishLista = async ()=>{
+        if(Object.values(inferedTags).length>0)
+        return alert('No puedes guardar la lista sin guardar todos los tags inferidos.');
+        
         saveLista();
         setOnUpdate(true);
     }
@@ -95,7 +98,7 @@ export const ItemsListaEditor:React.FC<ItemsListaEditorProps> = ({updateListaIte
             
             <ItemEditor 
                 clearTableItemIdToEditSkuList={clearTableItemIdToEditSkuList}
-                updateListaItem={updateListaItem}
+                updateListaItem={updateItem}
                 serializedProducts={serializedProducts}
                 serializedListaItems={serializedListaItems}
                 cotizaciones={cotizaciones}
@@ -111,6 +114,8 @@ export const ItemsListaEditor:React.FC<ItemsListaEditorProps> = ({updateListaIte
                 addItemSku={addItemSku}
                 getCbItemByCodigo={getCbItemByCodigo}
                 createItemSku={createItemSku}
+                deposits={deposits}
+                setRemoveObservationQueue={setRemoveObservationQueue}
             />
 
             {onUpdate && <UpdateProductsModal updateContextProducts={updateContextProducts} cleanQueue={()=>{setOnUpdate(false)}} initUpdateProducts={initUpdateProducts}/>}

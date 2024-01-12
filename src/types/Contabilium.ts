@@ -82,6 +82,27 @@ export type Vendor = {
     TipoDoc: string;
 }
 
+export type Deposit = {
+    Id:number,
+    Nombre:string,
+    Activo:boolean,
+}
+export type AccountDeposits = Deposit[];
+export type Deposits = {main:AccountDeposits,secondary:AccountDeposits};
+
+export type StockByDeposit ={
+    "Id": number,
+    "Codigo": string,
+    "StockActual": number,
+    "StockReservado": number,
+    "StockConReservas": number,
+}
+
+export type ProductStockByDeposits = {
+    [depositName:string]:StockByDeposit|null
+}
+
+
 export type UpdatesStatus = {
     id:number,
     status:boolean

@@ -41,7 +41,7 @@ export const cotizacionesUtils = async ({products}:{products:Products})=>{
         const {blue,oficial} = dolaresCotizaciones;
         const defaultCotizaciones = {peso:1,blue,oficial}
 
-        const initialAndLatestCotizations = {...defaultCotizaciones,...latestCotizaciones}
+        const initialAndLatestCotizations = {...latestCotizaciones,...defaultCotizaciones}
         Object.entries(initialAndLatestCotizations).forEach(([title,value])=>{
             // if(title in defaultCotizaciones || !(title in currentCotizaciones))
             updateCotizacion({title,value});

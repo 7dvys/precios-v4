@@ -65,8 +65,8 @@ export const EditListaPanel:React.FC<EditListaPanelProps> = ({setReadOnly,setTyp
                 </LabelWrapper>
                 <LabelWrapper labelText='Modificacion masiva'>
                     <div className='flex-row flex-gap-m'>
-                        <input ref={massiveChangeFactorRef} type="number" name="factor" disabled={!readOnly}/>
-                        <input onClick={changeAllCostHandler} type="button" value="aceptar" disabled={!readOnly}/>
+                        <input ref={massiveChangeFactorRef} type="number" name="factor" disabled={readOnly}/>
+                        <input onClick={changeAllCostHandler} type="button" value="aceptar" disabled={readOnly}/>
                     </div>
                 </LabelWrapper>
             </div>
