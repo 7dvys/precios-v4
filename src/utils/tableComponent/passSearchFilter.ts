@@ -5,7 +5,7 @@ export const passSearchFilter = ({search,searchableColumns,item}:{search:string,
         const itemValues = Array.isArray(item[key])?item[key] as (string|number)[]:[item[key]];
         return itemValues.some(itemValue=>{
             if(search === '' || search === undefined || search === null)
-            return false;
+            return true;
             
             if(itemValue === undefined || itemValue === null || itemValue === '')
             return false;
