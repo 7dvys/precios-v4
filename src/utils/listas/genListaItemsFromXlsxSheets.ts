@@ -2,6 +2,9 @@ import { XlsxSheet } from "@/types/AgregarTypes";
 import { ListaItem } from "@/types/Listas";
 
 export const genListaItemsFromXlsxSheets = (xlsxSheets:XlsxSheet[])=>{
+    if(xlsxSheets === undefined)
+    return [];
+
     const xlsxListaItemsFromXlsxSheets = xlsxSheets.map(({items})=>(items));
     
     const items = xlsxListaItemsFromXlsxSheets.reduce((acc,listaItems)=>{
