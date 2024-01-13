@@ -1,4 +1,5 @@
 import containerStyles from '@/styles/containers.module.css'
+import itemEditorModalStyles from '@/styles/itemEditorModal.module.css'
 import { AccountType } from '@/types/Config';
 import { Deposits, Product, RubrosWithSubRubrosPerAccount, Tokens } from '@/types/Contabilium';
 import { ListaItem, Tags } from '@/types/Listas';
@@ -294,16 +295,18 @@ export const ItemEditorModal:React.FC<ItemEditorModal> = ({
 
                 {createItem && <SkuEditorCreateSku newProductTitleRef={newProductTitleRef} title={titulo} codigo={codigo}/>}
 
-                {renderListaItemCbProducts && <div>
-                    <h4>Items</h4>
-                    {/* <SkuEditorItemSkuLabels listaItemCodigo={codigo} listaItemCbProducts={listaItemCbProducts} removeItemSku={removeItemSku} addItemSku={undefined}/> */}
-                    <ListaCbItemLabels deposits={deposits} listaItemCodigo={codigo} listaItemCbProducts={listaItemCbProducts} removeItemSku={removeItemSkuHandler} />
-                </div>}
+                <div className={'flex-column '+itemEditorModalStyles.itemLabels}>
+                    {renderListaItemCbProducts && <div>
+                        <h4>Items</h4>
+                        {/* <SkuEditorItemSkuLabels listaItemCodigo={codigo} listaItemCbProducts={listaItemCbProducts} removeItemSku={removeItemSku} addItemSku={undefined}/> */}
+                        <ListaCbItemLabels deposits={deposits} listaItemCodigo={codigo} listaItemCbProducts={listaItemCbProducts} removeItemSku={removeItemSkuHandler} />
+                    </div>}
 
-                {renderListaItemCbProductsSuggestions && <div>
-                    <h4>Sugerencias</h4>
-                    <ListaCbItemSuggestLabels listaItemCodigo={codigo} listaItemCbProducts={listaItemCbProductsSuggestions} addItemSku={addItemSku}/>
-                </div>}
+                    {renderListaItemCbProductsSuggestions && <div>
+                        <h4>Sugerencias</h4>
+                        <ListaCbItemSuggestLabels listaItemCodigo={codigo} listaItemCbProducts={listaItemCbProductsSuggestions} addItemSku={addItemSku}/>
+                    </div>}
+                </div>
   
                 <div className="flex-row flex-gap-s">
                     <input onClick={confirmHandler} type="button" value="listo" />
